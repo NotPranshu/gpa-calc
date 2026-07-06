@@ -7,19 +7,16 @@
 }
 
 :root {
-  --bg: #101312;
-  --surface: #181f1d;
-  --surface-strong: #202925;
-  --surface-hover: #26332d;
-  --border: #33423b;
-  --text: #f4f0e8;
-  --text-muted: #a9b7ad;
-  --accent: #55d6a7;
-  --accent-hover: #38bf91;
-  --accent-ink: #0b241b;
-  --success: #f7c948;
-  --danger: #ff6b6b;
-  --focus: #8ab4ff;
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --border: #2d3a4f;
+  --text: #e8edf4;
+  --text-muted: #8b9cb3;
+  --accent: #4f8cff;
+  --accent-hover: #3d7aef;
+  --success: #34d399;
+  --danger: #f87171;
   --radius: 8px;
   --nav-height: 52px;
 }
@@ -65,9 +62,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--accent), var(--success));
+  background: linear-gradient(135deg, #1e3a5f, var(--accent));
   border-radius: 6px;
-  color: var(--accent-ink);
+  color: #fff;
   padding: 5px;
 }
 
@@ -82,12 +79,11 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-muted);
 }
 
 .nav-title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-align: center;
   white-space: nowrap;
@@ -107,7 +103,7 @@ body {
 
 .gpa-display {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #183126 0%, var(--surface-strong) 58%, #2d2a1b 100%);
+  background: linear-gradient(135deg, #1e3a5f 0%, var(--surface) 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.65rem 1rem;
@@ -126,7 +122,7 @@ body {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--text-muted);
   margin-top: 0.25rem;
 }
 
@@ -190,7 +186,7 @@ body {
 
 .existing-gpa-field input:focus {
   outline: none;
-  border-color: var(--focus);
+  border-color: var(--accent);
 }
 
 .main-content {
@@ -213,7 +209,7 @@ body {
 .section-header h2,
 .scale-section h2 {
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .courses-section {
@@ -247,7 +243,7 @@ body {
 .course-row input,
 .course-row select {
   width: 100%;
-  background: #0d100f;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--text);
@@ -259,7 +255,7 @@ body {
 .course-row input:focus,
 .course-row select:focus {
   outline: none;
-  border-color: var(--focus);
+  border-color: var(--accent);
 }
 
 .btn {
@@ -268,14 +264,14 @@ body {
   cursor: pointer;
   font-family: inherit;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.35rem 0.65rem;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s;
 }
 
 .btn-primary {
   background: var(--accent);
-  color: var(--accent-ink);
+  color: #fff;
 }
 
 .btn-primary:hover {
@@ -299,7 +295,7 @@ body {
 .btn-remove:hover {
   background: var(--danger);
   border-color: var(--danger);
-  color: #1d0d0d;
+  color: #fff;
 }
 
 .empty-state {
@@ -337,8 +333,8 @@ body {
 }
 
 .scale-table th {
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--text-muted);
+  font-weight: 600;
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -352,8 +348,7 @@ body {
   display: inline-block;
   min-width: 1.5rem;
   text-align: center;
-  font-weight: 800;
-  color: var(--success);
+  font-weight: 700;
 }
 
 .grade-badge.fail {
