@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPA Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 4L3 11l13 7 13-7-13-7z" fill="currentColor" opacity="0.9"/>
+          <path d="M6 14v6c0 2.5 4.5 5 10 5s10-2.5 10-5v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M26 12v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="nav-institution">University Name</span>
+    </div>
+    <h1 class="nav-title">GPA Calculator</h1>
+    <div class="nav-spacer" aria-hidden="true"></div>
+  </nav>
+
+  <div class="app">
+    <section class="gpa-display">
+      <div class="gpa-value" id="gpaValue">—</div>
+      <div class="gpa-label">Cumulative GPA</div>
+      <div class="gpa-meta" id="gpaMeta">Add courses to get started</div>
+
+      <div class="existing-gpa">
+        <label class="existing-gpa-toggle">
+          <input type="checkbox" id="hasExistingGpa">
+          <span>I already have a GPA</span>
+        </label>
+        <div class="existing-gpa-fields" id="existingGpaFields" hidden>
+          <label class="existing-gpa-field">
+            <span>Current GPA</span>
+            <input type="number" id="existingGpa" min="0" max="4.5" step="0.01" placeholder="e.g. 3.25">
+          </label>
+          <label class="existing-gpa-field">
+            <span>Prior courses</span>
+            <input type="number" id="priorCourses" min="1" step="1" placeholder="e.g. 8">
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="main-content">
+      <section class="courses-section">
+        <div class="section-header">
+          <h2>Courses</h2>
+          <button type="button" class="btn btn-primary" id="addCourseBtn">+ Add Course</button>
+        </div>
+        <div id="coursesList" class="courses-list"></div>
+      </section>
+
+      <section class="scale-section">
+        <h2>Grade Scale</h2>
+        <table class="scale-table">
+          <thead>
+            <tr>
+              <th>Grade</th>
+              <th>Range</th>
+              <th>GPA</th>
+            </tr>
+          </thead>
+          <tbody id="scaleTableBody"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
