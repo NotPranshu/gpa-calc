@@ -1,0 +1,402 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --border: #2d3a4f;
+  --text: #e8edf4;
+  --text-muted: #8b9cb3;
+  --accent: #4f8cff;
+  --accent-hover: #3d7aef;
+  --success: #34d399;
+  --danger: #f87171;
+  --radius: 8px;
+  --nav-height: 52px;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  height: var(--nav-height);
+  padding: 0 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.nav-logo {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e3a5f, var(--accent));
+  border-radius: 6px;
+  color: #fff;
+  padding: 5px;
+}
+
+.nav-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+.nav-institution {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.app {
+  flex: 1;
+  min-height: 0;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.gpa-display {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #1e3a5f 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  text-align: center;
+}
+
+.gpa-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--success);
+  line-height: 1;
+}
+
+.gpa-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.gpa-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.existing-gpa {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.existing-gpa-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.existing-gpa-toggle input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.existing-gpa-fields {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.45rem;
+}
+
+.existing-gpa-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.existing-gpa-field input {
+  width: 110px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 0.3rem 0.45rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.existing-gpa-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.main-content {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+
+.section-header h2,
+.scale-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.courses-section {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.courses-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-right: 2px;
+}
+
+.course-row {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 100px 30px;
+  gap: 0.45rem;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.5rem;
+}
+
+.course-row input,
+.course-row select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.course-row input:focus,
+.course-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn {
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-remove {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.btn-remove:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+
+.scale-section {
+  align-self: start;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem 0.65rem;
+}
+
+.scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+
+.scale-table th,
+.scale-table td {
+  padding: 0.3rem 0.35rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.scale-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scale-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.grade-badge {
+  display: inline-block;
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.grade-badge.fail {
+  color: var(--danger);
+}
+
+.courses-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.courses-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .scale-section {
+    flex-shrink: 0;
+  }
+
+  .scale-table th,
+  .scale-table td {
+    padding: 0.2rem 0.3rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .navbar {
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+  }
+
+  .nav-spacer {
+    display: none;
+  }
+
+  .nav-title {
+    font-size: 0.85rem;
+    text-align: right;
+  }
+
+  .course-row {
+    grid-template-columns: 1fr 88px 30px;
+  }
+}
