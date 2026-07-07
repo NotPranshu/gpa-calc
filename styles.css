@@ -21,6 +21,19 @@
   --nav-height: 56px;
 }
 
+:root[data-theme="light"] {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-hover: #8192ad;
+  --border: #d8e1ec;
+  --text: #14213d;
+  --text-muted: #5a687d;
+  --accent: #e6ebf7;
+  --accent-hover: #92abdd;
+  --success: #0f9d6e;
+  --danger: #d64545;
+}
+
 html,
 body {
   height: 100%;
@@ -46,6 +59,33 @@ body {
   padding: 0 1.25rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--text);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--border);
 }
 
 .nav-brand {
@@ -94,7 +134,7 @@ body {
 
 .gpa-display {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1e3a5f 0%, var(--surface) 100%);
+  /*background: linear-gradient(135deg, #1e3a5f 0%, var(--surface) 100%);*/
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.65rem 1rem;

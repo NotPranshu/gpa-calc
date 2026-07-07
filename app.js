@@ -20,8 +20,42 @@ const existingGpaFields = document.getElementById("existingGpaFields");
 const existingGpaInput = document.getElementById("existingGpa");
 const priorCoursesInput = document.getElementById("priorCourses");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
+const themeToggle = document.getElementById("themeToggle");
 
 let courseIdCounter = 0;
+
+function setTheme(theme) {
+  const resolvedTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = resolvedTheme;
+  const icon = themeToggle?.querySelector(".theme-toggle-icon");
+  const label = themeToggle?.querySelector(".theme-toggle-label");
+
+  if (icon) {
+    icon.textContent = resolvedTheme === "light" ? "☀️" : "🌙";
+  }
+
+  if (label) {
+    label.textContent = resolvedTheme === "light" ? "Light" : "Dark";
+  }
+
+  try {
+    localStorage.setItem("gpa-theme", resolvedTheme);
+  } catch (error) {
+    console.warn("Theme preference could not be saved", error);
+  }
+}
+
+function initializeTheme() {
+  let savedTheme = "dark";
+
+  try {
+    savedTheme = localStorage.getItem("gpa-theme") || "dark";
+  } catch (error) {
+    console.warn("Theme preference could not be loaded", error);
+  }
+
+  setTheme(savedTheme);
+}
 
 function getGradeByLetter(letter) {
   if (!letter) return null;
@@ -291,6 +325,11 @@ function addCourse() {
 document.getElementById("addCourseBtn").addEventListener("click", addCourse);
 exportPdfBtn.addEventListener("click", exportToPdf);
 
+themeToggle?.addEventListener("click", () => {
+  const currentTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  setTheme(currentTheme === "light" ? "dark" : "light");
+});
+
 hasExistingGpa.addEventListener("change", () => {
   existingGpaFields.hidden = !hasExistingGpa.checked;
   if (!hasExistingGpa.checked) {
@@ -304,6 +343,7 @@ hasExistingGpa.addEventListener("change", () => {
   input.addEventListener("input", calculateGPA);
 });
 
+initializeTheme();
 renderScaleTable();
 updateEmptyState();
 calculateGPA();
