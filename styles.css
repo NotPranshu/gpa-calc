@@ -195,6 +195,13 @@ body {
   justify-content: space-between;
   margin-bottom: 0.5rem;
   flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .section-header h2,
@@ -267,6 +274,16 @@ body {
 
 .btn-primary:hover {
   background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--surface-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
 }
 
 .btn-remove {

@@ -19,6 +19,7 @@ const hasExistingGpa = document.getElementById("hasExistingGpa");
 const existingGpaFields = document.getElementById("existingGpaFields");
 const existingGpaInput = document.getElementById("existingGpa");
 const priorCoursesInput = document.getElementById("priorCourses");
+const exportPdfBtn = document.getElementById("exportPdfBtn");
 
 let courseIdCounter = 0;
 
@@ -50,6 +51,130 @@ function renderScaleTable() {
       </tr>
     `;
   }).join("");
+}
+
+function getCurrentCourseReportData() {
+  return Array.from(coursesList.querySelectorAll(".course-row")).map((row) => {
+    const name = row.querySelector(".name-input").value.trim() || "Untitled course";
+    const gradeInput = row.querySelector(".grade-input");
+    const gradeInfo = getGradeByLetter(gradeInput.value);
+
+    return {
+      name,
+      grade: gradeInfo ? gradeInfo.grade : "Not selected",
+      points: gradeInfo ? gradeInfo.points.toFixed(1) : "—",
+    };
+  });
+}
+
+function exportToPdf() {
+  const existing = getExistingGpaData();
+  const currentCourses = getCurrentCourseReportData();
+  const gpaSummary = gpaValue.textContent === "—" ? "Not calculated yet" : gpaValue.textContent;
+
+  const summaryItems = [];
+  if (existing) {
+    summaryItems.push(`<li><strong>Prior GPA:</strong> ${existing.gpa.toFixed(2)} across ${existing.courses} course${existing.courses !== 1 ? "s" : ""}</li>`);
+  }
+  summaryItems.push(`<li><strong>Current GPA:</strong> ${gpaSummary}</li>`);
+
+  const courseRowsHtml = currentCourses.length === 0
+    ? '<p class="report-empty">No course entries added yet.</p>'
+    : currentCourses.map((course) => `
+        <tr>
+          <td>${course.name}</td>
+          <td>${course.grade}</td>
+          <td>${course.points}</td>
+        </tr>
+      `).join("");
+
+  const reportWindow = window.open("", "_blank", "width=900,height=700");
+  if (!reportWindow) {
+    alert("Please allow pop-ups to export the GPA report.");
+    return;
+  }
+
+  reportWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>GPA Report</title>
+      <style>
+        body {
+          font-family: "Segoe UI", sans-serif;
+          margin: 0;
+          padding: 24px;
+          color: #14213d;
+          background: #fff;
+        }
+        h1 {
+          margin: 0 0 8px;
+          font-size: 24px;
+        }
+        .meta {
+          color: #5b6472;
+          margin-bottom: 20px;
+        }
+        .summary {
+          background: #f5f7fb;
+          border: 1px solid #d9e2ef;
+          border-radius: 8px;
+          padding: 12px 14px;
+          margin-bottom: 20px;
+        }
+        .summary ul {
+          padding-left: 18px;
+          margin: 0;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th,
+        td {
+          border-bottom: 1px solid #d9e2ef;
+          padding: 8px 6px;
+          text-align: left;
+        }
+        th {
+          background: #f5f7fb;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .report-empty {
+          color: #5b6472;
+          font-style: italic;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>GPA Report</h1>
+      <div class="meta">Generated from the GPA Calculator</div>
+      <div class="summary">
+        <ul>${summaryItems.join("")}</ul>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Grade</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>${courseRowsHtml}</tbody>
+      </table>
+    </body>
+    </html>
+  `);
+
+  reportWindow.document.close();
+  reportWindow.focus();
+  setTimeout(() => {
+    reportWindow.print();
+  }, 250);
 }
 
 function createCourseRow() {
@@ -164,6 +289,7 @@ function addCourse() {
 }
 
 document.getElementById("addCourseBtn").addEventListener("click", addCourse);
+exportPdfBtn.addEventListener("click", exportToPdf);
 
 hasExistingGpa.addEventListener("change", () => {
   existingGpaFields.hidden = !hasExistingGpa.checked;
@@ -180,3 +306,4 @@ hasExistingGpa.addEventListener("change", () => {
 
 renderScaleTable();
 updateEmptyState();
+calculateGPA();
