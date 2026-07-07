@@ -53,7 +53,3 @@ Each course is currently treated as 15 credits in the GPA calculation.
 ├── app.js
 └── README.md
 ```
-
-## Development
-
-Because this is a static site, no installation is needed. Edit the HTML, CSS, or JavaScript files directly, then refresh the browser to see changes.
