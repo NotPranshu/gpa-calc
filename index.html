@@ -46,6 +46,99 @@
       </div>
     </section>
 
+    <section class="planner-section" aria-labelledby="plannerHeading">
+      <div class="section-header planner-section-header">
+        <h2 id="plannerHeading">What If? GPA Planner</h2>
+        <button type="button" class="btn btn-secondary" id="resetPlannerBtn">Reset</button>
+      </div>
+
+      <div class="planner-dashboard">
+        <div class="planner-card planner-form-card">
+          <div class="planner-input-grid">
+            <label class="planner-field">
+              <span>Current CGPA</span>
+              <input type="number" id="plannerCurrentGpa" min="0" max="4.5" step="0.01" placeholder="3.25">
+            </label>
+            <label class="planner-field">
+              <span>Credits completed</span>
+              <input type="number" id="plannerCompletedCredits" min="0" step="1" placeholder="72">
+            </label>
+            <label class="planner-field">
+              <span>Target CGPA</span>
+              <input type="number" id="plannerTargetGpa" min="0" max="4.5" step="0.01" placeholder="3.50">
+            </label>
+            <label class="planner-field">
+              <span>Total credits required</span>
+              <input type="number" id="plannerTotalCredits" min="1" step="1" placeholder="120">
+            </label>
+          </div>
+
+          <div class="planner-course-panel">
+            <div class="planner-course-header">
+              <h3>Planned Semester</h3>
+              <button type="button" class="btn btn-primary" id="plannerAddCourseBtn">+ Add Course</button>
+            </div>
+            <div id="plannerCourseList" class="planner-course-list"></div>
+          </div>
+        </div>
+
+        <div class="planner-card planner-results-card" id="plannerResultsCard">
+          <div class="planner-stat-grid">
+            <article class="planner-stat">
+              <span class="planner-stat-label">Current CGPA</span>
+              <span class="planner-stat-value" id="plannerCurrentStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Target CGPA</span>
+              <span class="planner-stat-value" id="plannerTargetStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Credits Completed</span>
+              <span class="planner-stat-value" id="plannerCompletedStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Remaining Credits</span>
+              <span class="planner-stat-value" id="plannerRemainingStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Required Average</span>
+              <span class="planner-stat-value" id="plannerRequiredStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Projected CGPA</span>
+              <span class="planner-stat-value" id="plannerProjectedStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Semester GPA</span>
+              <span class="planner-stat-value" id="plannerSemesterStat">—</span>
+            </article>
+          </div>
+
+          <div class="planner-progress-card">
+            <div class="planner-progress-head">
+              <span>Progress to goal</span>
+              <strong id="plannerStatusBadge">Needs input</strong>
+            </div>
+            <div class="planner-progress-track" aria-hidden="true">
+              <div class="planner-progress-fill" id="plannerProgressFill"></div>
+              <div class="planner-progress-marker planner-marker-current" id="plannerMarkerCurrent"></div>
+              <div class="planner-progress-marker planner-marker-target" id="plannerMarkerTarget"></div>
+              <div class="planner-progress-marker planner-marker-projected" id="plannerMarkerProjected"></div>
+            </div>
+            <div class="planner-progress-labels">
+              <span id="plannerProgressCurrentLabel">Current —</span>
+              <span id="plannerProgressTargetLabel">Target —</span>
+              <span id="plannerProgressProjectedLabel">Projected —</span>
+            </div>
+          </div>
+
+          <div class="planner-feedback" id="plannerFeedback">
+            Enter your current standing and a target to see what you need next.
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="main-content">
       <section class="courses-section">
         <div class="section-header">
@@ -73,6 +166,16 @@
       </section>
     </div>
   </div>
+
+
+
+
+
+  
+  <footer class="app-footer">
+    <p>GPA Calculator • Track semester performance and plan your target GPA</p>
+    <p>Built for students to estimate grades, compare outcomes, and stay on track</p>
+  </footer>
 
   <script src="app.js"></script>
 </body>
