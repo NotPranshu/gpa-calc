@@ -22,7 +22,7 @@ const existingGpaFields = document.getElementById("existingGpaFields");
 const existingGpaInput = document.getElementById("existingGpa");
 const priorCoursesInput = document.getElementById("priorCourses");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
-const themeToggle = document.getElementById("themeToggle");
+const addCourseBtn = document.getElementById("addCourseBtn");
 
 const plannerCurrentGpaInput = document.getElementById("plannerCurrentGpa");
 const plannerCompletedCreditsInput = document.getElementById("plannerCompletedCredits");
@@ -49,41 +49,11 @@ const plannerProgressCurrentLabel = document.getElementById("plannerProgressCurr
 const plannerProgressTargetLabel = document.getElementById("plannerProgressTargetLabel");
 const plannerProgressProjectedLabel = document.getElementById("plannerProgressProjectedLabel");
 
+const hasCalculatorPage = Boolean(coursesList && gpaValue && scaleTableBody && hasExistingGpa && exportPdfBtn && addCourseBtn);
+const hasPlannerPage = Boolean(plannerCurrentGpaInput && plannerCourseList && plannerAddCourseBtn && plannerResetBtn && plannerResultsCard);
+
 let courseIdCounter = 0;
 let plannerCourseIdCounter = 0;
-
-function setTheme(theme) {
-  const resolvedTheme = theme === "light" ? "light" : "dark";
-  document.documentElement.dataset.theme = resolvedTheme;
-  const icon = themeToggle?.querySelector(".theme-toggle-icon");
-  const label = themeToggle?.querySelector(".theme-toggle-label");
-
-  if (icon) {
-    icon.textContent = resolvedTheme === "light" ? "☀️" : "🌙";
-  }
-
-  if (label) {
-    label.textContent = resolvedTheme === "light" ? "Light" : "Dark";
-  }
-
-  try {
-    localStorage.setItem("gpa-theme", resolvedTheme);
-  } catch (error) {
-    console.warn("Theme preference could not be saved", error);
-  }
-}
-
-function initializeTheme() {
-  let savedTheme = "dark";
-
-  try {
-    savedTheme = localStorage.getItem("gpa-theme") || "dark";
-  } catch (error) {
-    console.warn("Theme preference could not be loaded", error);
-  }
-
-  setTheme(savedTheme);
-}
 
 function getGradeByLetter(letter) {
   if (!letter) return null;
@@ -117,6 +87,7 @@ function renderScaleTable() {
 }
 
 function getCurrentCourseReportData() {
+  if (!coursesList) return [];
   return Array.from(coursesList.querySelectorAll(".course-row")).map((row) => {
     const name = row.querySelector(".name-input").value.trim() || "Untitled course";
     const gradeInput = row.querySelector(".grade-input");
@@ -131,6 +102,7 @@ function getCurrentCourseReportData() {
 }
 
 function exportToPdf() {
+  if (!coursesList || !gpaValue) return;
   const existing = getExistingGpaData();
   const currentCourses = getCurrentCourseReportData();
   const gpaSummary = gpaValue.textContent === "—" ? "Not calculated yet" : gpaValue.textContent;
@@ -241,6 +213,7 @@ function exportToPdf() {
 }
 
 function createCourseRow() {
+  if (!coursesList) return document.createElement("div");
   const id = ++courseIdCounter;
   const row = document.createElement("div");
   row.className = "course-row";
@@ -270,6 +243,7 @@ function createCourseRow() {
 }
 
 function updateEmptyState() {
+  if (!coursesList) return;
   const rows = coursesList.querySelectorAll(".course-row");
   const existing = coursesList.querySelector(".empty-state");
   if (rows.length === 0 && !existing) {
@@ -280,6 +254,7 @@ function updateEmptyState() {
 }
 
 function getExistingGpaData() {
+  if (!hasExistingGpa || !existingGpaInput || !priorCoursesInput) return null;
   if (!hasExistingGpa.checked) return null;
 
   const gpa = parseFloat(existingGpaInput.value);
@@ -296,6 +271,7 @@ function getExistingGpaData() {
 }
 
 function calculateGPA() {
+  if (!coursesList || !gpaValue || !gpaMeta) return;
   const rows = coursesList.querySelectorAll(".course-row");
   let totalPoints = 0;
   let totalCredits = 0;
@@ -344,6 +320,7 @@ function calculateGPA() {
 }
 
 function addCourse() {
+  if (!coursesList) return;
   const empty = coursesList.querySelector(".empty-state");
   if (empty) empty.remove();
   const row = createCourseRow();
@@ -352,6 +329,7 @@ function addCourse() {
 }
 
 function getPlannerCoursesFromDom() {
+  if (!plannerCourseList) return [];
   return Array.from(plannerCourseList.querySelectorAll(".planner-course-row")).map((row) => ({
     name: row.querySelector(".planner-course-name").value.trim(),
     credits: row.querySelector(".planner-course-credits").value,
@@ -360,6 +338,7 @@ function getPlannerCoursesFromDom() {
 }
 
 function savePlannerState() {
+  if (!hasPlannerPage) return;
   const state = {
     currentGpa: plannerCurrentGpaInput.value,
     completedCredits: plannerCompletedCreditsInput.value,
@@ -376,6 +355,7 @@ function savePlannerState() {
 }
 
 function loadPlannerState() {
+  if (!hasPlannerPage) return null;
   try {
     const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
     return saved ? JSON.parse(saved) : null;
@@ -396,6 +376,7 @@ function describeNeededGpa(gpa) {
 }
 
 function createPlannerCourseRow(course = {}) {
+  if (!plannerCourseList) return document.createElement("div");
   const row = document.createElement("div");
   row.className = "planner-course-row";
   row.dataset.id = ++plannerCourseIdCounter;
@@ -450,6 +431,7 @@ function createPlannerCourseRow(course = {}) {
 }
 
 function addPlannerCourse(course = {}) {
+  if (!plannerCourseList) return;
   const emptyState = plannerCourseList.querySelector(".planner-empty-state");
   if (emptyState) {
     emptyState.remove();
@@ -460,6 +442,7 @@ function addPlannerCourse(course = {}) {
 }
 
 function populatePlannerForm(state) {
+  if (!plannerCourseList || !plannerCurrentGpaInput || !plannerCompletedCreditsInput || !plannerTargetGpaInput || !plannerTotalCreditsInput) return;
   plannerCurrentGpaInput.value = state.currentGpa || "";
   plannerCompletedCreditsInput.value = state.completedCredits || "";
   plannerTargetGpaInput.value = state.targetGpa || "";
@@ -476,6 +459,7 @@ function populatePlannerForm(state) {
 }
 
 function calculatePlanner() {
+  if (!hasPlannerPage) return;
   const currentGpa = parseFloat(plannerCurrentGpaInput.value);
   const completedCredits = parseFloat(plannerCompletedCreditsInput.value);
   const targetGpa = parseFloat(plannerTargetGpaInput.value);
@@ -621,6 +605,7 @@ function calculatePlanner() {
 }
 
 function resetPlanner() {
+  if (!hasPlannerPage) return;
   plannerCurrentGpaInput.value = "";
   plannerCompletedCreditsInput.value = "";
   plannerTargetGpaInput.value = "";
@@ -630,50 +615,59 @@ function resetPlanner() {
   calculatePlanner();
 }
 
-document.getElementById("addCourseBtn").addEventListener("click", addCourse);
-exportPdfBtn.addEventListener("click", exportToPdf);
-plannerAddCourseBtn.addEventListener("click", () => addPlannerCourse());
-plannerResetBtn.addEventListener("click", resetPlanner);
-
-themeToggle?.addEventListener("click", () => {
-  const currentTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
-  setTheme(currentTheme === "light" ? "dark" : "light");
-});
-
-hasExistingGpa.addEventListener("change", () => {
-  existingGpaFields.hidden = !hasExistingGpa.checked;
-  if (!hasExistingGpa.checked) {
-    existingGpaInput.value = "";
-    priorCoursesInput.value = "";
-  }
-  calculateGPA();
-});
-
-[existingGpaInput, priorCoursesInput].forEach((input) => {
-  input.addEventListener("input", calculateGPA);
-});
-
-[
-  plannerCurrentGpaInput,
-  plannerCompletedCreditsInput,
-  plannerTargetGpaInput,
-  plannerTotalCreditsInput,
-].forEach((input) => {
-  input.addEventListener("input", () => {
-    savePlannerState();
-    calculatePlanner();
-  });
-});
-
-initializeTheme();
-renderScaleTable();
-updateEmptyState();
-calculateGPA();
-
-const savedPlannerState = loadPlannerState();
-if (savedPlannerState) {
-  populatePlannerForm(savedPlannerState);
-} else {
-  plannerCourseList.innerHTML = '<div class="planner-empty-state">Add a semester plan to see your projected GPA.</div>';
+if (hasCalculatorPage) {
+  addCourseBtn.addEventListener("click", addCourse);
+  exportPdfBtn.addEventListener("click", exportToPdf);
 }
-calculatePlanner();
+
+if (hasPlannerPage) {
+  plannerAddCourseBtn.addEventListener("click", () => addPlannerCourse());
+  plannerResetBtn.addEventListener("click", resetPlanner);
+}
+
+if (hasExistingGpa && existingGpaFields && existingGpaInput && priorCoursesInput) {
+  hasExistingGpa.addEventListener("change", () => {
+    existingGpaFields.hidden = !hasExistingGpa.checked;
+    if (!hasExistingGpa.checked) {
+      existingGpaInput.value = "";
+      priorCoursesInput.value = "";
+    }
+    calculateGPA();
+  });
+}
+
+if (existingGpaInput && priorCoursesInput) {
+  [existingGpaInput, priorCoursesInput].forEach((input) => {
+    input.addEventListener("input", calculateGPA);
+  });
+}
+
+if (hasPlannerPage) {
+  [
+    plannerCurrentGpaInput,
+    plannerCompletedCreditsInput,
+    plannerTargetGpaInput,
+    plannerTotalCreditsInput,
+  ].forEach((input) => {
+    input.addEventListener("input", () => {
+      savePlannerState();
+      calculatePlanner();
+    });
+  });
+}
+
+if (hasCalculatorPage) {
+  renderScaleTable();
+  updateEmptyState();
+  calculateGPA();
+}
+
+if (hasPlannerPage) {
+  const savedPlannerState = loadPlannerState();
+  if (savedPlannerState) {
+    populatePlannerForm(savedPlannerState);
+  } else {
+    plannerCourseList.innerHTML = '<div class="planner-empty-state">Add a semester plan to see your projected GPA.</div>';
+  }
+  calculatePlanner();
+}

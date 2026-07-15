@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What If GPA Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-identity">
+      <img class="nav-logo" src="https://www.unifiji.ac.fj/wp-content/uploads/2022/02/viber_image_2022-02-04_11-32-02-502.png" alt="University of Fiji logo">
+      <div class="nav-copy">
+        <p class="nav-kicker">University of Fiji</p>
+        <h1 class="nav-title">What If GPA Planner</h1>
+        <p class="nav-subtitle">Estimate the GPA you need to reach your target</p>
+      </div>
+    </div>
+    <div class="nav-links" aria-label="Primary navigation">
+      <a class="nav-link" href="index.html">Calculator</a>
+      <a class="nav-link active" href="planner.html">What If Planner</a>
+      <a class="nav-link" href="final-grade.html">Final Grade</a>
+    </div>
+    <div class="nav-socials" aria-label="External links">
+      <a class="nav-social" href="https://github.com/NotPranshu/gpa-calc" target="_blank" rel="noreferrer noopener" aria-label="GitHub repository" title="GitHub repository">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.02-1.71-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.12-1.5-1.12-1.5-.92-.64.07-.63.07-.63 1.02.07 1.56 1.07 1.56 1.07.91 1.6 2.39 1.14 2.97.87.09-.67.35-1.14.64-1.4-2.22-.26-4.56-1.14-4.56-5.08 0-1.12.38-2.03 1.01-2.75-.1-.27-.44-1.35.1-2.82 0 0 .83-.27 2.75 1.05a9.2 9.2 0 0 1 2.5-.35c.85 0 1.7.12 2.5.35 1.92-1.32 2.75-1.05 2.75-1.05.54 1.47.2 2.55.1 2.82.63.72 1.01 1.63 1.01 2.75 0 3.95-2.35 4.82-4.58 5.07.36.32.68.95.68 1.92 0 1.39-.01 2.51-.01 2.85 0 .26.18.59.69.48A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"></path>
+        </svg>
+      </a>
+      <a class="nav-social" href="https://www.instagram.com/pranshu.ayush/" target="_blank" rel="noreferrer noopener" aria-label="Instagram profile" title="Instagram profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5Zm8.8 1.3a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.8A3.2 3.2 0 1 0 12 15.2 3.2 3.2 0 0 0 12 8.8Z"></path>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <main class="app">
+    <section class="page-hero">
+      <div class="page-hero-copy">
+        <p class="page-hero-eyebrow">Academic planning</p>
+        <h2>Model your next semester before you enroll.</h2>
+        <p>
+          Compare scenarios, test target GPAs, and see how planned grades affect your final result.
+        </p>
+      </div>
+      <div class="page-hero-actions">
+        <a class="hero-link" href="index.html">Back to GPA Calculator</a>
+      </div>
+    </section>
+
+    <section class="planner-section" aria-labelledby="plannerHeading">
+      <div class="section-header planner-section-header">
+        <h2 id="plannerHeading">What If? GPA Planner</h2>
+        <button type="button" class="btn btn-secondary" id="resetPlannerBtn">Reset</button>
+      </div>
+
+      <div class="planner-dashboard">
+        <div class="planner-card planner-form-card">
+          <div class="planner-input-grid">
+            <label class="planner-field">
+              <span>Current CGPA</span>
+              <input type="number" id="plannerCurrentGpa" min="0" max="4.5" step="0.01" placeholder="3.25">
+            </label>
+            <label class="planner-field">
+              <span>Credits completed</span>
+              <input type="number" id="plannerCompletedCredits" min="0" step="1" placeholder="72">
+            </label>
+            <label class="planner-field">
+              <span>Target CGPA</span>
+              <input type="number" id="plannerTargetGpa" min="0" max="4.5" step="0.01" placeholder="3.50">
+            </label>
+            <label class="planner-field">
+              <span>Total credits required</span>
+              <input type="number" id="plannerTotalCredits" min="1" step="1" placeholder="120">
+            </label>
+          </div>
+
+          <div class="planner-course-panel">
+            <div class="planner-course-header">
+              <h3>Planned Semester</h3>
+              <button type="button" class="btn btn-primary" id="plannerAddCourseBtn">+ Add Course</button>
+            </div>
+            <div id="plannerCourseList" class="planner-course-list"></div>
+          </div>
+        </div>
+
+        <div class="planner-card planner-results-card" id="plannerResultsCard">
+          <div class="planner-stat-grid">
+            <article class="planner-stat">
+              <span class="planner-stat-label">Current CGPA</span>
+              <span class="planner-stat-value" id="plannerCurrentStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Target CGPA</span>
+              <span class="planner-stat-value" id="plannerTargetStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Credits Completed</span>
+              <span class="planner-stat-value" id="plannerCompletedStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Remaining Credits</span>
+              <span class="planner-stat-value" id="plannerRemainingStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Required Average</span>
+              <span class="planner-stat-value" id="plannerRequiredStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Projected CGPA</span>
+              <span class="planner-stat-value" id="plannerProjectedStat">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Semester GPA</span>
+              <span class="planner-stat-value" id="plannerSemesterStat">—</span>
+            </article>
+          </div>
+
+          <div class="planner-progress-card">
+            <div class="planner-progress-head">
+              <span>Progress to goal</span>
+              <strong id="plannerStatusBadge">Needs input</strong>
+            </div>
+            <div class="planner-progress-track" aria-hidden="true">
+              <div class="planner-progress-fill" id="plannerProgressFill"></div>
+              <div class="planner-progress-marker planner-marker-current" id="plannerMarkerCurrent"></div>
+              <div class="planner-progress-marker planner-marker-target" id="plannerMarkerTarget"></div>
+              <div class="planner-progress-marker planner-marker-projected" id="plannerMarkerProjected"></div>
+            </div>
+            <div class="planner-progress-labels">
+              <span id="plannerProgressCurrentLabel">Current —</span>
+              <span id="plannerProgressTargetLabel">Target —</span>
+              <span id="plannerProgressProjectedLabel">Projected —</span>
+            </div>
+          </div>
+
+          <div class="planner-feedback" id="plannerFeedback">
+            Enter your current standing and a target to see what you need next.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>What If GPA Planner • Model your target semester performance</p>
+    <p>Built for students to compare scenarios and stay on track</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

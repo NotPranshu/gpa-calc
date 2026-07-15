@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Grade Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-identity">
+      <img class="nav-logo" src="https://www.unifiji.ac.fj/wp-content/uploads/2022/02/viber_image_2022-02-04_11-32-02-502.png" alt="University of Fiji logo">
+      <div class="nav-copy">
+        <p class="nav-kicker">University of Fiji</p>
+        <h1 class="nav-title">Final Grade Calculator</h1>
+        <p class="nav-subtitle">Weighted coursework and final paper marks</p>
+      </div>
+    </div>
+    <div class="nav-links" aria-label="Primary navigation">
+      <a class="nav-link" href="index.html">Calculator</a>
+      <a class="nav-link" href="planner.html">What If Planner</a>
+      <a class="nav-link active" href="final-grade.html">Final Grade</a>
+    </div>
+    <div class="nav-socials" aria-label="External links">
+      <a class="nav-social" href="https://github.com/NotPranshu/gpa-calc" target="_blank" rel="noreferrer noopener" aria-label="GitHub repository" title="GitHub repository">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.02-1.71-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.12-1.5-1.12-1.5-.92-.64.07-.63.07-.63 1.02.07 1.56 1.07 1.56 1.07.91 1.6 2.39 1.14 2.97.87.09-.67.35-1.14.64-1.4-2.22-.26-4.56-1.14-4.56-5.08 0-1.12.38-2.03 1.01-2.75-.1-.27-.44-1.35.1-2.82 0 0 .83-.27 2.75 1.05a9.2 9.2 0 0 1 2.5-.35c.85 0 1.7.12 2.5.35 1.92-1.32 2.75-1.05 2.75-1.05.54 1.47.2 2.55.1 2.82.63.72 1.01 1.63 1.01 2.75 0 3.95-2.35 4.82-4.58 5.07.36.32.68.95.68 1.92 0 1.39-.01 2.51-.01 2.85 0 .26.18.59.69.48A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"></path>
+        </svg>
+      </a>
+      <a class="nav-social" href="https://www.instagram.com/pranshu.ayush/" target="_blank" rel="noreferrer noopener" aria-label="Instagram profile" title="Instagram profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5Zm8.8 1.3a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.8A3.2 3.2 0 1 0 12 15.2 3.2 3.2 0 0 0 12 8.8Z"></path>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <main class="app">
+    <section class="page-hero">
+      <div class="page-hero-copy">
+        <p class="page-hero-eyebrow">Weighted grading</p>
+        <h2>Calculate your final result from coursework and the final paper.</h2>
+        <p>Enter both marks and weights, and the weighted final grade updates instantly.</p>
+      </div>
+    </section>
+
+    <section class="planner-section" aria-labelledby="finalGradeHeading">
+      <div class="section-header planner-section-header">
+        <h2 id="finalGradeHeading">Final Grade Calculator</h2>
+      </div>
+
+      <div class="planner-dashboard">
+        <div class="planner-card planner-form-card">
+          <div class="planner-input-grid">
+            <label class="planner-field">
+              <span>Coursework mark</span>
+              <input type="number" id="courseworkMark" min="0" max="100" step="0.01" placeholder="e.g. 72">
+            </label>
+            <label class="planner-field">
+              <span>Coursework weight</span>
+              <input type="number" id="courseworkWeight" min="0" step="0.01" placeholder="e.g. 60">
+            </label>
+            <label class="planner-field">
+              <span>Final paper mark</span>
+              <input type="number" id="finalPaperMark" min="0" max="100" step="0.01" placeholder="e.g. 68">
+            </label>
+            <label class="planner-field">
+              <span>Final paper weight</span>
+              <input type="number" id="finalPaperWeight" min="0" step="0.01" placeholder="e.g. 40">
+            </label>
+          </div>
+
+          <div class="planner-feedback" id="finalGradeFeedback">Enter both marks and weights to calculate the final grade.</div>
+        </div>
+
+        <div class="planner-card planner-results-card">
+          <div class="planner-stat-grid">
+            <article class="planner-stat">
+              <span class="planner-stat-label">Final Grade</span>
+              <span class="planner-stat-value" id="finalGradeValue">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Letter Grade</span>
+              <span class="planner-stat-value" id="finalGradeLetter">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Coursework Contribution</span>
+              <span class="planner-stat-value" id="courseworkContribution">—</span>
+            </article>
+            <article class="planner-stat">
+              <span class="planner-stat-label">Final Paper Contribution</span>
+              <span class="planner-stat-value" id="finalPaperContribution">—</span>
+            </article>
+          </div>
+
+          <div class="planner-progress-card">
+            <div class="planner-progress-head">
+              <span>Weight split</span>
+              <strong id="weightBadge">Waiting</strong>
+            </div>
+            <div class="planner-progress-track" aria-hidden="true">
+              <div class="planner-progress-fill" id="weightFill"></div>
+            </div>
+            <div class="planner-progress-labels">
+              <span id="courseworkWeightLabel">Coursework —</span>
+              <span id="finalPaperWeightLabel">Final paper —</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Final Grade Calculator • Weighted coursework and final paper marks</p>
+    <p>Built for students to estimate final module performance</p>
+  </footer>
+
+  <script>
+    const courseworkMarkInput = document.getElementById('courseworkMark');
+    const courseworkWeightInput = document.getElementById('courseworkWeight');
+    const finalPaperMarkInput = document.getElementById('finalPaperMark');
+    const finalPaperWeightInput = document.getElementById('finalPaperWeight');
+
+    const finalGradeValue = document.getElementById('finalGradeValue');
+    const finalGradeLetter = document.getElementById('finalGradeLetter');
+    const courseworkContribution = document.getElementById('courseworkContribution');
+    const finalPaperContribution = document.getElementById('finalPaperContribution');
+    const finalGradeFeedback = document.getElementById('finalGradeFeedback');
+    const weightFill = document.getElementById('weightFill');
+    const weightBadge = document.getElementById('weightBadge');
+    const courseworkWeightLabel = document.getElementById('courseworkWeightLabel');
+    const finalPaperWeightLabel = document.getElementById('finalPaperWeightLabel');
+
+    const gradeBands = [
+      { label: 'A+', min: 85 },
+      { label: 'A', min: 80 },
+      { label: 'B+', min: 75 },
+      { label: 'B', min: 65 },
+      { label: 'C+', min: 60 },
+      { label: 'C', min: 50 },
+      { label: 'D', min: 40 },
+      { label: 'E', min: 0 },
+    ];
+
+    function getLetterGrade(score) {
+      return gradeBands.find((band) => score >= band.min)?.label ?? 'E';
+    }
+
+    function formatNumber(value) {
+      return Number.isFinite(value) ? value.toFixed(2) : '—';
+    }
+
+    function calculateFinalGrade() {
+      const courseworkMark = parseFloat(courseworkMarkInput.value);
+      const courseworkWeight = parseFloat(courseworkWeightInput.value);
+      const finalPaperMark = parseFloat(finalPaperMarkInput.value);
+      const finalPaperWeight = parseFloat(finalPaperWeightInput.value);
+
+      const inputsValid = [courseworkMark, courseworkWeight, finalPaperMark, finalPaperWeight].every(Number.isFinite)
+        && courseworkMark >= 0 && courseworkMark <= 100
+        && finalPaperMark >= 0 && finalPaperMark <= 100
+        && courseworkWeight >= 0 && finalPaperWeight >= 0;
+
+      if (!inputsValid || (courseworkWeight + finalPaperWeight) === 0) {
+        finalGradeValue.textContent = '—';
+        finalGradeLetter.textContent = '—';
+        courseworkContribution.textContent = '—';
+        finalPaperContribution.textContent = '—';
+        courseworkWeightLabel.textContent = 'Coursework —';
+        finalPaperWeightLabel.textContent = 'Final paper —';
+        weightFill.style.width = '0%';
+        weightBadge.textContent = 'Waiting';
+        finalGradeFeedback.textContent = 'Enter both marks and weights to calculate the final grade.';
+        return;
+      }
+
+      const totalWeight = courseworkWeight + finalPaperWeight;
+      const finalGrade = ((courseworkMark * courseworkWeight) + (finalPaperMark * finalPaperWeight)) / totalWeight;
+      const courseworkShare = (courseworkWeight / totalWeight) * 100;
+      const finalPaperShare = (finalPaperWeight / totalWeight) * 100;
+
+      finalGradeValue.textContent = formatNumber(finalGrade);
+      finalGradeLetter.textContent = getLetterGrade(finalGrade);
+      courseworkContribution.textContent = formatNumber((courseworkMark * courseworkWeight) / totalWeight);
+      finalPaperContribution.textContent = formatNumber((finalPaperMark * finalPaperWeight) / totalWeight);
+      courseworkWeightLabel.textContent = `Coursework ${formatNumber(courseworkShare)}%`;
+      finalPaperWeightLabel.textContent = `Final paper ${formatNumber(finalPaperShare)}%`;
+      weightFill.style.width = `${courseworkShare}%`;
+      weightBadge.textContent = `${formatNumber(courseworkShare)} / ${formatNumber(finalPaperShare)}`;
+      finalGradeFeedback.textContent = `Weighted final grade: ${formatNumber(finalGrade)}% using ${formatNumber(courseworkShare)}% coursework and ${formatNumber(finalPaperShare)}% final paper.`;
+    }
+
+    [courseworkMarkInput, courseworkWeightInput, finalPaperMarkInput, finalPaperWeightInput].forEach((input) => {
+      input.addEventListener('input', calculateFinalGrade);
+    });
+
+    calculateFinalGrade();
+  </script>
+</body>
+</html>
