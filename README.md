@@ -44,12 +44,4 @@ The calculator uses a 4.5-point scale:
 
 Each course is currently treated as 15 credits in the GPA calculation.
 
-## Project Structure
 
-```text
-.
-├── index.html
-├── styles.css
-├── app.js
-└── README.md
-```
