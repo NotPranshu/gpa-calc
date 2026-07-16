@@ -1,4 +1,5 @@
 const CREDITS_PER_COURSE = 15;
+const ACADEMIC_PROFILE_STORAGE_KEY = "gpa-academic-profile";
 const PLANNER_STORAGE_KEY = "gpa-planner-state";
 const SEMESTER_HISTORY_STORAGE_KEY = "gpa-semester-history";
 const MAX_GPA_SCALE = 4.5;
@@ -24,6 +25,19 @@ const existingGpaInput = document.getElementById("existingGpa");
 const priorCoursesInput = document.getElementById("priorCourses");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const addCourseBtn = document.getElementById("addCourseBtn");
+const saveStatusBadge = document.getElementById("saveStatusBadge");
+const saveStatusDetails = document.getElementById("saveStatusDetails");
+const storageLastSaved = document.getElementById("storageLastSaved");
+const storageSemesterCount = document.getElementById("storageSemesterCount");
+const storageCourseCount = document.getElementById("storageCourseCount");
+const storageCurrentCgpa = document.getElementById("storageCurrentCgpa");
+const storageTargetGpa = document.getElementById("storageTargetGpa");
+const clearDataBtn = document.getElementById("clearDataBtn");
+const exportJsonBtn = document.getElementById("exportJsonBtn");
+const exportCsvBtn = document.getElementById("exportCsvBtn");
+const importDataBtn = document.getElementById("importDataBtn");
+const importDataInput = document.getElementById("importDataInput");
+const restoreNotice = document.getElementById("restoreNotice");
 
 const semesterTrendSection = document.getElementById("semesterTrendSection");
 const semesterTrendChartCanvas = document.getElementById("semesterTrendChart");
@@ -72,12 +86,68 @@ const plannerProgressProjectedLabel = document.getElementById("plannerProgressPr
 const hasCalculatorPage = Boolean(coursesList && gpaValue && scaleTableBody && hasExistingGpa && exportPdfBtn && addCourseBtn);
 const hasPlannerPage = Boolean(plannerCurrentGpaInput && plannerCourseList && plannerAddCourseBtn && plannerResetBtn && plannerResultsCard);
 const hasTrendPage = Boolean(semesterTrendSection && semesterTrendChartCanvas && semesterTrendForm && semesterLabelInput && semesterGpaInput && semesterTargetInput && semesterHistoryList);
+const hasStorageControls = Boolean(saveStatusBadge && saveStatusDetails && storageLastSaved && storageSemesterCount && storageCourseCount && storageCurrentCgpa && storageTargetGpa);
 
 let courseIdCounter = 0;
 let plannerCourseIdCounter = 0;
 let semesterTrendChart = null;
 let semesterHistory = [];
 let semesterEditingId = null;
+let academicProfile = null;
+let profileLoaded = false;
+
+function createEmptyAcademicProfile() {
+  return {
+    version: 1,
+    lastSavedAt: null,
+    draftCourses: [],
+    semesters: [],
+    currentCGPA: null,
+    targetGPA: null,
+    planner: {
+      currentGpa: "",
+      completedCredits: "",
+      targetGpa: "",
+      totalCredits: "",
+      courses: [],
+    },
+    existingGpa: {
+      enabled: false,
+      gpa: "",
+      priorCourses: "",
+    },
+  };
+}
+
+function clonePlainObject(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function safeNumber(value) {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function safeInteger(value) {
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatRelativeTime(dateString) {
+  if (!dateString) return "Never";
+
+  const savedTime = new Date(dateString).getTime();
+  if (!Number.isFinite(savedTime)) return "Never";
+
+  const delta = Date.now() - savedTime;
+  const minutes = Math.max(0, Math.floor(delta / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
 
 function createSemesterId() {
   return `semester-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -94,6 +164,309 @@ function formatGpa(value, fractionDigits = 2) {
 function normalizeSemesterLabel(label, fallbackIndex) {
   const trimmed = label.trim();
   return trimmed || `Semester ${fallbackIndex}`;
+}
+
+function getSemesterGpaValue(record) {
+  const value = safeNumber(record?.semesterGPA ?? record?.gpa);
+  return value === null ? null : clampGpa(value);
+}
+
+function serializeCourseRow(row) {
+  return {
+    name: row.querySelector(".name-input")?.value.trim() || "",
+    grade: row.querySelector(".grade-input")?.value || "",
+  };
+}
+
+function captureSemesterCourses() {
+  if (!coursesList) return [];
+
+  return Array.from(coursesList.querySelectorAll(".course-row")).map((row) => ({
+    code: "",
+    name: row.querySelector(".name-input")?.value.trim() || "",
+    credits: CREDITS_PER_COURSE,
+    grade: row.querySelector(".grade-input")?.value || "",
+  }));
+}
+
+function serializePlannerCourseRow(row) {
+  return {
+    name: row.querySelector(".planner-course-name")?.value.trim() || "",
+    credits: row.querySelector(".planner-course-credits")?.value || "",
+    grade: row.querySelector(".planner-course-grade")?.value || "",
+  };
+}
+
+function normalizeSemesterRecord(record, index) {
+  if (!record || typeof record !== "object") return null;
+
+  const gpa = safeNumber(record.semesterGPA ?? record.gpa);
+  if (gpa === null || gpa < 0 || gpa > MAX_GPA_SCALE) return null;
+
+  return {
+    id: String(record.id || createSemesterId()),
+    label: normalizeSemesterLabel(String(record.name || record.label || record.semester || ""), index + 1),
+    courses: Array.isArray(record.courses)
+      ? record.courses.map((course) => ({
+          code: String(course?.code || "").trim(),
+          name: String(course?.name || "").trim(),
+          credits: safeNumber(course?.credits) ?? 0,
+          grade: String(course?.grade || "").trim(),
+        }))
+      : [],
+      semesterGPA: gpa,
+      gpa,
+    createdAt: safeNumber(record.createdAt) ? Number(record.createdAt) : Date.now() + index,
+  };
+}
+
+function normalizeAcademicProfile(profile) {
+  const fallback = createEmptyAcademicProfile();
+  if (!profile || typeof profile !== "object") return fallback;
+
+  const semestersSource = Array.isArray(profile.semesters)
+    ? profile.semesters
+    : Array.isArray(profile.records)
+      ? profile.records
+      : [];
+
+  const semesters = semestersSource
+    .map((record, index) => normalizeSemesterRecord(record, index))
+    .filter(Boolean)
+    .sort((left, right) => left.createdAt - right.createdAt);
+
+  return {
+    version: 1,
+    lastSavedAt: typeof profile.lastSavedAt === "string" ? profile.lastSavedAt : null,
+    draftCourses: Array.isArray(profile.draftCourses)
+      ? profile.draftCourses.map((course) => ({
+          name: String(course?.name || "").trim(),
+          grade: String(course?.grade || "").trim(),
+        }))
+      : [],
+    semesters,
+    currentCGPA: safeNumber(profile.currentCGPA ?? profile.currentGpa),
+    targetGPA: safeNumber(profile.targetGPA ?? profile.targetGpa),
+    planner: {
+      currentGpa: String(profile.planner?.currentGpa ?? profile.currentGpa ?? ""),
+      completedCredits: String(profile.planner?.completedCredits ?? profile.completedCredits ?? ""),
+      targetGpa: String(profile.planner?.targetGpa ?? profile.targetGpa ?? ""),
+      totalCredits: String(profile.planner?.totalCredits ?? profile.totalCredits ?? ""),
+      courses: Array.isArray(profile.planner?.courses)
+        ? profile.planner.courses.map((course) => ({
+            name: String(course?.name || "").trim(),
+            credits: String(course?.credits || ""),
+            grade: String(course?.grade || ""),
+          }))
+        : [],
+    },
+    existingGpa: {
+      enabled: Boolean(profile.existingGpa?.enabled),
+      gpa: String(profile.existingGpa?.gpa ?? profile.existingGpa?.value ?? ""),
+      priorCourses: String(profile.existingGpa?.priorCourses ?? profile.existingGpa?.courses ?? ""),
+    },
+  };
+}
+
+function readLegacyPlannerStorage() {
+  try {
+    const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.warn("Legacy planner data could not be loaded", error);
+    return null;
+  }
+}
+
+function readLegacySemesterStorage() {
+  try {
+    const saved = localStorage.getItem(SEMESTER_HISTORY_STORAGE_KEY);
+    if (!saved) return { targetGpa: "", records: [] };
+    const parsed = JSON.parse(saved);
+    const records = Array.isArray(parsed.records) ? parsed.records : Array.isArray(parsed) ? parsed : [];
+    return {
+      targetGpa: parsed && typeof parsed.targetGpa !== "undefined" ? String(parsed.targetGpa) : "",
+      records: records
+        .map((record, index) => ({
+          id: record.id || createSemesterId(),
+          label: normalizeSemesterLabel(String(record.label || record.semester || ""), index + 1),
+          gpa: getSemesterGpaValue(record),
+          createdAt: Number.isFinite(safeNumber(record.createdAt)) ? Number(record.createdAt) : Date.now() + index,
+        }))
+        .filter((record) => Number.isFinite(record.gpa)),
+    };
+  } catch (error) {
+    console.warn("Legacy semester data could not be loaded", error);
+    return { targetGpa: "", records: [] };
+  }
+}
+
+function readStoredAcademicProfile() {
+  try {
+    const saved = localStorage.getItem(ACADEMIC_PROFILE_STORAGE_KEY);
+    if (saved) {
+      return normalizeAcademicProfile(JSON.parse(saved));
+    }
+  } catch (error) {
+    console.warn("Academic profile could not be loaded", error);
+  }
+
+  const legacySemesters = readLegacySemesterStorage();
+  const legacyPlanner = readLegacyPlannerStorage();
+  const profile = createEmptyAcademicProfile();
+  profile.semesters = legacySemesters.records.map((record) => ({
+    id: record.id,
+    label: record.label,
+    courses: [],
+    semesterGPA: record.gpa,
+    gpa: record.gpa,
+    createdAt: record.createdAt,
+  }));
+  profile.targetGPA = safeNumber(legacySemesters.targetGpa);
+  profile.planner = {
+    currentGpa: legacyPlanner?.currentGpa || "",
+    completedCredits: legacyPlanner?.completedCredits || "",
+    targetGpa: legacyPlanner?.targetGpa || "",
+    totalCredits: legacyPlanner?.totalCredits || "",
+    courses: Array.isArray(legacyPlanner?.courses)
+      ? legacyPlanner.courses.map((course) => ({
+          name: String(course?.name || "").trim(),
+          credits: String(course?.credits || ""),
+          grade: String(course?.grade || ""),
+        }))
+      : [],
+  };
+  return profile;
+}
+
+function updateStorageStatusMessage(message, tone = "success") {
+  if (saveStatusBadge) {
+    saveStatusBadge.textContent = tone === "success" ? "Saved" : tone === "warning" ? "Needs attention" : "Offline";
+    saveStatusBadge.dataset.state = tone;
+  }
+  if (saveStatusDetails) {
+    saveStatusDetails.textContent = message;
+  }
+}
+
+function refreshStorageStats() {
+  if (!hasStorageControls || !academicProfile) return;
+
+  const semesters = academicProfile.semesters.length;
+  const courseCount = academicProfile.semesters.reduce((sum, semester) => sum + (Array.isArray(semester.courses) ? semester.courses.length : 0), 0);
+  const draftCourses = academicProfile.draftCourses.length;
+  const currentCgpa = Number.isFinite(academicProfile.currentCGPA) ? academicProfile.currentCGPA.toFixed(2) : "—";
+  const targetGpa = Number.isFinite(academicProfile.targetGPA) ? academicProfile.targetGPA.toFixed(2) : "—";
+
+  storageLastSaved.textContent = academicProfile.lastSavedAt ? formatRelativeTime(academicProfile.lastSavedAt) : "Never";
+  storageSemesterCount.textContent = `${semesters}`;
+  storageCourseCount.textContent = `${courseCount + draftCourses}`;
+  storageCurrentCgpa.textContent = currentCgpa;
+  storageTargetGpa.textContent = targetGpa;
+}
+
+function syncProfileFromCurrentUi() {
+  if (!academicProfile) return;
+
+  if (hasCalculatorPage && coursesList && hasExistingGpa) {
+    academicProfile.draftCourses = Array.from(coursesList.querySelectorAll(".course-row")).map(serializeCourseRow);
+    academicProfile.existingGpa = {
+      enabled: hasExistingGpa.checked,
+      gpa: existingGpaInput?.value || "",
+      priorCourses: priorCoursesInput?.value || "",
+    };
+    academicProfile.currentCGPA = safeNumber(gpaValue?.textContent);
+  }
+
+  if (hasPlannerPage) {
+    academicProfile.planner = {
+      currentGpa: plannerCurrentGpaInput?.value || "",
+      completedCredits: plannerCompletedCreditsInput?.value || "",
+      targetGpa: plannerTargetGpaInput?.value || "",
+      totalCredits: plannerTotalCreditsInput?.value || "",
+      courses: Array.from(plannerCourseList.querySelectorAll(".planner-course-row")).map(serializePlannerCourseRow),
+    };
+    academicProfile.targetGPA = safeNumber(plannerTargetGpaInput?.value) ?? academicProfile.targetGPA;
+  }
+
+  if (hasTrendPage) {
+    academicProfile.semesters = getSemesterRecordsSorted().map((record) => ({
+      id: record.id,
+      name: record.label,
+      label: record.label,
+      courses: Array.isArray(record.courses) ? record.courses : [],
+      semesterGPA: record.gpa,
+      gpa: record.gpa,
+      createdAt: record.createdAt,
+    }));
+    academicProfile.targetGPA = safeNumber(semesterTargetInput?.value) ?? academicProfile.targetGPA;
+  }
+}
+
+function persistAcademicProfile(options = {}) {
+  if (!academicProfile) return;
+
+  syncProfileFromCurrentUi();
+  academicProfile.version = 1;
+  academicProfile.lastSavedAt = new Date().toISOString();
+
+  try {
+    localStorage.setItem(ACADEMIC_PROFILE_STORAGE_KEY, JSON.stringify(academicProfile));
+    updateStorageStatusMessage(options.message || "Progress saved", "success");
+  } catch (error) {
+    console.warn("Academic profile could not be saved", error);
+    updateStorageStatusMessage("Could not save data", "warning");
+  }
+
+  refreshStorageStats();
+}
+
+function initializeAcademicProfile() {
+  academicProfile = readStoredAcademicProfile();
+  profileLoaded = true;
+  refreshStorageStats();
+}
+
+function restoreAcademicUiFromProfile() {
+  if (!academicProfile) return;
+
+  if (hasCalculatorPage) {
+    renderDraftCourses(academicProfile.draftCourses);
+    if (hasExistingGpa) {
+      hasExistingGpa.checked = Boolean(academicProfile.existingGpa.enabled);
+      if (existingGpaFields) existingGpaFields.hidden = !hasExistingGpa.checked;
+    }
+    if (existingGpaInput) existingGpaInput.value = academicProfile.existingGpa.gpa || "";
+    if (priorCoursesInput) priorCoursesInput.value = academicProfile.existingGpa.priorCourses || "";
+    calculateGPA();
+  }
+
+  if (hasPlannerPage) {
+    populatePlannerForm(academicProfile.planner);
+    calculatePlanner();
+  }
+
+  if (hasTrendPage) {
+    semesterHistory = academicProfile.semesters.map((semester, index) => ({
+      id: semester.id || createSemesterId(),
+      label: normalizeSemesterLabel(String(semester.label || semester.name || `Semester ${index + 1}`), index + 1),
+      courses: Array.isArray(semester.courses) ? semester.courses : [],
+      gpa: getSemesterGpaValue(semester),
+      semesterGPA: getSemesterGpaValue(semester),
+      createdAt: Number.isFinite(safeNumber(semester.createdAt)) ? Number(semester.createdAt) : Date.now() + index,
+    })).filter((record) => Number.isFinite(record.gpa));
+    if (semesterTargetInput && academicProfile.targetGPA !== null && academicProfile.targetGPA !== undefined) {
+      semesterTargetInput.value = String(academicProfile.targetGPA);
+    }
+    syncSemesterTrend();
+  }
+
+  if (restoreNotice) {
+    restoreNotice.hidden = false;
+    restoreNotice.textContent = academicProfile.lastSavedAt ? `Welcome back! Your academic data has been restored. Last saved ${formatRelativeTime(academicProfile.lastSavedAt)}.` : "Welcome back! Your academic data has been restored.";
+  }
+
+  updateStorageStatusMessage(academicProfile.lastSavedAt ? `Last saved ${formatRelativeTime(academicProfile.lastSavedAt)}` : "Ready to save", academicProfile.lastSavedAt ? "success" : "warning");
 }
 
 function getGradeByLetter(letter) {
@@ -253,6 +626,198 @@ function exportToPdf() {
   }, 250);
 }
 
+function buildAcademicProfileSnapshot() {
+  syncProfileFromCurrentUi();
+  return clonePlainObject(academicProfile || createEmptyAcademicProfile());
+}
+
+function downloadTextFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportAcademicProfileJson() {
+  const snapshot = buildAcademicProfileSnapshot();
+  downloadTextFile(
+    `gpa-academic-profile-${new Date().toISOString().slice(0, 10)}.json`,
+    `${JSON.stringify(snapshot, null, 2)}\n`,
+    "application/json"
+  );
+  updateStorageStatusMessage("JSON backup downloaded", "success");
+}
+
+function exportAcademicProfileCsv() {
+  const snapshot = buildAcademicProfileSnapshot();
+  const rows = [
+    ["type", "semester", "course_code", "course_name", "credits", "grade", "semester_gpa", "current_cgpa", "target_gpa"],
+  ];
+
+  snapshot.semesters.forEach((semester) => {
+    const semesterName = semester.label || semester.name || "Semester";
+    const semesterGpa = getSemesterGpaValue(semester);
+    if (Array.isArray(semester.courses) && semester.courses.length > 0) {
+      semester.courses.forEach((course) => {
+        rows.push([
+          "semester_course",
+          semesterName,
+          String(course.code || ""),
+          String(course.name || ""),
+          String(course.credits || ""),
+          String(course.grade || ""),
+          String(semesterGpa ?? ""),
+          String(snapshot.currentCGPA ?? ""),
+          String(snapshot.targetGPA ?? ""),
+        ]);
+      });
+    } else {
+      rows.push([
+        "semester",
+        semesterName,
+        "",
+        "",
+        "",
+        "",
+        String(semesterGpa ?? ""),
+        String(snapshot.currentCGPA ?? ""),
+        String(snapshot.targetGPA ?? ""),
+      ]);
+    }
+  });
+
+  if (rows.length === 1) {
+    rows.push(["empty", "", "", "", "", "", "", String(snapshot.currentCGPA ?? ""), String(snapshot.targetGPA ?? "")]);
+  }
+
+  const csv = rows
+    .map((cells) => cells.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","))
+    .join("\n");
+
+  downloadTextFile(
+    `gpa-academic-profile-${new Date().toISOString().slice(0, 10)}.csv`,
+    `${csv}\n`,
+    "text/csv"
+  );
+  updateStorageStatusMessage("CSV report downloaded", "success");
+}
+
+function clearAcademicProfile() {
+  const confirmed = window.confirm("Delete all academic records?");
+  if (!confirmed) return;
+
+  academicProfile = createEmptyAcademicProfile();
+  semesterHistory = [];
+  semesterEditingId = null;
+
+  try {
+    localStorage.removeItem(ACADEMIC_PROFILE_STORAGE_KEY);
+    localStorage.removeItem(PLANNER_STORAGE_KEY);
+    localStorage.removeItem(SEMESTER_HISTORY_STORAGE_KEY);
+  } catch (error) {
+    console.warn("Academic profile could not be cleared", error);
+  }
+
+  if (hasCalculatorPage) {
+    renderDraftCourses([]);
+    if (hasExistingGpa) {
+      hasExistingGpa.checked = false;
+    }
+    if (existingGpaFields) existingGpaFields.hidden = true;
+    if (existingGpaInput) existingGpaInput.value = "";
+    if (priorCoursesInput) priorCoursesInput.value = "";
+    calculateGPA();
+  }
+
+  if (hasPlannerPage) {
+    resetPlanner();
+  }
+
+  if (hasTrendPage) {
+    semesterTargetInput.value = "";
+    syncSemesterTrend();
+    resetSemesterForm();
+  }
+
+  refreshStorageStats();
+  updateStorageStatusMessage("All academic records removed", "warning");
+}
+
+function applyImportedAcademicProfile(profile) {
+  academicProfile = normalizeAcademicProfile(profile);
+
+  if (hasCalculatorPage) {
+    renderDraftCourses(academicProfile.draftCourses);
+    if (hasExistingGpa) {
+      hasExistingGpa.checked = Boolean(academicProfile.existingGpa.enabled);
+      if (existingGpaFields) existingGpaFields.hidden = !hasExistingGpa.checked;
+    }
+    if (existingGpaInput) existingGpaInput.value = academicProfile.existingGpa.gpa || "";
+    if (priorCoursesInput) priorCoursesInput.value = academicProfile.existingGpa.priorCourses || "";
+    calculateGPA();
+  }
+
+  if (hasPlannerPage) {
+    populatePlannerForm(academicProfile.planner);
+    calculatePlanner();
+  }
+
+  if (hasTrendPage) {
+    semesterHistory = academicProfile.semesters.map((semester, index) => ({
+      id: semester.id || createSemesterId(),
+      label: normalizeSemesterLabel(String(semester.label || semester.name || `Semester ${index + 1}`), index + 1),
+      courses: Array.isArray(semester.courses) ? semester.courses : [],
+      gpa: getSemesterGpaValue(semester),
+      semesterGPA: getSemesterGpaValue(semester),
+      createdAt: Number.isFinite(safeNumber(semester.createdAt)) ? Number(semester.createdAt) : Date.now() + index,
+    })).filter((record) => Number.isFinite(record.gpa));
+    if (semesterTargetInput) {
+      semesterTargetInput.value = academicProfile.targetGPA !== null && academicProfile.targetGPA !== undefined ? String(academicProfile.targetGPA) : "";
+    }
+    syncSemesterTrend();
+    resetSemesterForm();
+  }
+
+  persistAcademicProfile({ message: "Progress saved" });
+}
+
+function handleImportAcademicProfile() {
+  if (!importDataInput) return;
+  importDataInput.click();
+}
+
+function readImportedAcademicProfile(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const text = String(reader.result || "").trim();
+      if (!text) {
+        updateStorageStatusMessage("Imported file was empty", "warning");
+        return;
+      }
+
+      if (file.name.toLowerCase().endsWith(".csv")) {
+        updateStorageStatusMessage("CSV import is not supported. Export CSV is for reporting.", "warning");
+        return;
+      }
+
+      applyImportedAcademicProfile(JSON.parse(text));
+      updateStorageStatusMessage("Academic data imported", "success");
+    } catch (error) {
+      console.warn("Imported academic data could not be read", error);
+      updateStorageStatusMessage("Imported file could not be loaded", "warning");
+    }
+  };
+  reader.readAsText(file);
+}
+
 function createCourseRow() {
   if (!coursesList) return document.createElement("div");
   const id = ++courseIdCounter;
@@ -271,15 +836,31 @@ function createCourseRow() {
   const gradeInput = row.querySelector(".grade-input");
   const removeBtn = row.querySelector(".btn-remove");
 
-  nameInput.addEventListener("input", calculateGPA);
-  gradeInput.addEventListener("change", calculateGPA);
+  nameInput.addEventListener("input", () => {
+    calculateGPA();
+    persistAcademicProfile({ message: "Progress saved" });
+  });
+  gradeInput.addEventListener("change", () => {
+    calculateGPA();
+    persistAcademicProfile({ message: "Progress saved" });
+  });
 
   removeBtn.addEventListener("click", () => {
     row.remove();
     updateEmptyState();
     calculateGPA();
+    persistAcademicProfile({ message: "Progress saved" });
   });
 
+  return row;
+}
+
+function createCourseRowFromData(course = {}) {
+  const row = createCourseRow();
+  const nameInput = row.querySelector(".name-input");
+  const gradeInput = row.querySelector(".grade-input");
+  if (nameInput) nameInput.value = course.name || "";
+  if (gradeInput) gradeInput.value = course.grade || "";
   return row;
 }
 
@@ -292,6 +873,21 @@ function updateEmptyState() {
   } else if (rows.length > 0 && existing) {
     existing.remove();
   }
+}
+
+function renderDraftCourses(courses = []) {
+  if (!coursesList) return;
+  coursesList.innerHTML = "";
+  if (!courses.length) {
+    updateEmptyState();
+    return;
+  }
+
+  courses.forEach((course) => {
+    coursesList.appendChild(createCourseRowFromData(course));
+  });
+
+  updateEmptyState();
 }
 
 function getExistingGpaData() {
@@ -312,45 +908,33 @@ function getExistingGpaData() {
 }
 
 function loadSemesterHistoryState() {
-  try {
-    const saved = localStorage.getItem(SEMESTER_HISTORY_STORAGE_KEY);
-    if (!saved) {
-      return { targetGpa: "", records: [] };
-    }
-
-    const parsed = JSON.parse(saved);
-    const records = Array.isArray(parsed.records) ? parsed.records : Array.isArray(parsed) ? parsed : [];
-
-    return {
-      targetGpa: parsed && typeof parsed.targetGpa !== "undefined" ? String(parsed.targetGpa) : "",
-      records: records
-        .map((record, index) => ({
-          id: record.id || createSemesterId(),
-          label: normalizeSemesterLabel(String(record.label || record.semester || ""), index + 1),
-          gpa: clampGpa(parseFloat(record.gpa)),
-          createdAt: Number.isFinite(parseInt(record.createdAt, 10)) ? parseInt(record.createdAt, 10) : Date.now() + index,
-        }))
-        .filter((record) => Number.isFinite(record.gpa)),
-    };
-  } catch (error) {
-    console.warn("Semester trend data could not be loaded", error);
-    return { targetGpa: "", records: [] };
-  }
+  const semesters = Array.isArray(academicProfile?.semesters) ? academicProfile.semesters : [];
+  return {
+    targetGpa: academicProfile?.targetGPA !== null && academicProfile?.targetGPA !== undefined ? String(academicProfile.targetGPA) : "",
+    records: semesters
+      .map((record, index) => ({
+        id: record.id || createSemesterId(),
+        label: normalizeSemesterLabel(String(record.label || record.name || record.semester || ""), index + 1),
+        courses: Array.isArray(record.courses) ? record.courses : [],
+        gpa: getSemesterGpaValue(record),
+        createdAt: Number.isFinite(safeNumber(record.createdAt)) ? Number(record.createdAt) : Date.now() + index,
+      }))
+      .filter((record) => Number.isFinite(record.gpa)),
+  };
 }
 
 function saveSemesterHistoryState() {
-  if (!hasTrendPage) return;
-
-  const state = {
-    targetGpa: semesterTargetInput.value.trim(),
-    records: semesterHistory,
-  };
-
-  try {
-    localStorage.setItem(SEMESTER_HISTORY_STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.warn("Semester trend data could not be saved", error);
-  }
+  if (!academicProfile) return;
+  academicProfile.semesters = semesterHistory.map((record) => ({
+    id: record.id,
+    name: record.label,
+    label: record.label,
+    courses: Array.isArray(record.courses) ? record.courses : [],
+    semesterGPA: getSemesterGpaValue(record),
+    createdAt: record.createdAt,
+  }));
+  academicProfile.targetGPA = safeNumber(semesterTargetInput?.value) ?? academicProfile.targetGPA;
+  persistAcademicProfile({ message: "Progress saved" });
 }
 
 function getSemesterRecordsSorted() {
@@ -372,12 +956,12 @@ function getTrendStats(records) {
   const best = records.reduce((highest, record) => (record.gpa > highest.gpa ? record : highest), records[0]);
   const first = records[0];
   const latest = records[records.length - 1];
-  const growth = latest.gpa - first.gpa;
+  const growth = getSemesterGpaValue(latest) - getSemesterGpaValue(first);
 
   const recentWindow = records.slice(-3);
   let trend = "Stable";
   if (recentWindow.length >= 2) {
-    const diffs = recentWindow.slice(1).map((record, index) => record.gpa - recentWindow[index].gpa);
+    const diffs = recentWindow.slice(1).map((record, index) => getSemesterGpaValue(record) - getSemesterGpaValue(recentWindow[index]));
     const improving = diffs.every((delta) => delta > 0.02);
     const declining = diffs.every((delta) => delta < -0.02);
     if (improving) trend = "Improving";
@@ -524,7 +1108,7 @@ function renderTrendChart(records) {
   }
 
   const labels = records.map((record) => record.label);
-  const values = records.map((record) => record.gpa);
+  const values = records.map((record) => getSemesterGpaValue(record));
   const targetGpa = parseFloat(semesterTargetInput?.value || "");
   const targetLine = Number.isFinite(targetGpa) ? labels.map(() => clampGpa(targetGpa)) : null;
   const colors = buildTrendChartColors();
@@ -741,6 +1325,7 @@ function upsertSemesterRecord(event) {
   const nextRecord = {
     id: semesterEditingId || createSemesterId(),
     label: normalizeSemesterLabel(label, semesterHistory.length + 1),
+    courses: semesterEditingId ? (semesterHistory.find((record) => record.id === semesterEditingId)?.courses || []) : captureSemesterCourses(),
     gpa: clampGpa(gpa),
     createdAt: semesterEditingId ? semesterHistory.find((record) => record.id === semesterEditingId)?.createdAt || Date.now() : Date.now(),
   };
@@ -838,6 +1423,7 @@ function addCourse() {
   const row = createCourseRow();
   coursesList.appendChild(row);
   row.querySelector(".name-input").focus();
+  persistAcademicProfile({ message: "Progress saved" });
 }
 
 function getPlannerCoursesFromDom() {
@@ -850,31 +1436,21 @@ function getPlannerCoursesFromDom() {
 }
 
 function savePlannerState() {
-  if (!hasPlannerPage) return;
-  const state = {
+  if (!academicProfile || !hasPlannerPage) return;
+  academicProfile.planner = {
     currentGpa: plannerCurrentGpaInput.value,
     completedCredits: plannerCompletedCreditsInput.value,
     targetGpa: plannerTargetGpaInput.value,
     totalCredits: plannerTotalCreditsInput.value,
     courses: getPlannerCoursesFromDom(),
   };
-
-  try {
-    localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.warn("Planner data could not be saved", error);
-  }
+  academicProfile.targetGPA = safeNumber(plannerTargetGpaInput.value) ?? academicProfile.targetGPA;
+  persistAcademicProfile({ message: "Progress saved" });
 }
 
 function loadPlannerState() {
-  if (!hasPlannerPage) return null;
-  try {
-    const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : null;
-  } catch (error) {
-    console.warn("Planner data could not be loaded", error);
-    return null;
-  }
+  if (!academicProfile || !hasPlannerPage) return null;
+  return academicProfile.planner;
 }
 
 function describeNeededGpa(gpa) {
@@ -1130,6 +1706,25 @@ function resetPlanner() {
 if (hasCalculatorPage) {
   addCourseBtn.addEventListener("click", addCourse);
   exportPdfBtn.addEventListener("click", exportToPdf);
+  if (exportJsonBtn) {
+    exportJsonBtn.addEventListener("click", exportAcademicProfileJson);
+  }
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener("click", exportAcademicProfileCsv);
+  }
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener("click", clearAcademicProfile);
+  }
+  if (importDataBtn) {
+    importDataBtn.addEventListener("click", handleImportAcademicProfile);
+  }
+  if (importDataInput) {
+    importDataInput.addEventListener("change", () => {
+      const [file] = importDataInput.files || [];
+      readImportedAcademicProfile(file);
+      importDataInput.value = "";
+    });
+  }
 }
 
 if (hasPlannerPage) {
@@ -1145,12 +1740,16 @@ if (hasExistingGpa && existingGpaFields && existingGpaInput && priorCoursesInput
       priorCoursesInput.value = "";
     }
     calculateGPA();
+    persistAcademicProfile({ message: "Progress saved" });
   });
 }
 
 if (existingGpaInput && priorCoursesInput) {
   [existingGpaInput, priorCoursesInput].forEach((input) => {
-    input.addEventListener("input", calculateGPA);
+    input.addEventListener("input", () => {
+      calculateGPA();
+      persistAcademicProfile({ message: "Progress saved" });
+    });
   });
 }
 
@@ -1162,19 +1761,22 @@ if (hasPlannerPage) {
     plannerTotalCreditsInput,
   ].forEach((input) => {
     input.addEventListener("input", () => {
-      savePlannerState();
       calculatePlanner();
+      savePlannerState();
     });
   });
 }
 
 if (hasCalculatorPage) {
+  initializeAcademicProfile();
   renderScaleTable();
-  updateEmptyState();
-  calculateGPA();
+  restoreAcademicUiFromProfile();
 }
 
 if (hasTrendPage) {
+  if (!profileLoaded) {
+    initializeAcademicProfile();
+  }
   loadSemesterHistoryFromStorage();
   syncSemesterTrend();
 
@@ -1197,8 +1799,8 @@ if (hasTrendPage) {
 
   if (semesterTargetInput) {
     semesterTargetInput.addEventListener("input", () => {
-      saveSemesterHistoryState();
       renderTrendChart(getSemesterRecordsSorted());
+      saveSemesterHistoryState();
     });
   }
 
@@ -1214,9 +1816,8 @@ if (hasTrendPage) {
 }
 
 if (hasPlannerPage) {
-  const savedPlannerState = loadPlannerState();
-  if (savedPlannerState) {
-    populatePlannerForm(savedPlannerState);
+  if (academicProfile?.planner) {
+    populatePlannerForm(academicProfile.planner);
   } else {
     plannerCourseList.innerHTML = '<div class="planner-empty-state">Add a semester plan to see your projected GPA.</div>';
   }

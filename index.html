@@ -62,6 +62,54 @@
       </div>
     </section>
 
+    <section class="storage-section" aria-labelledby="storageHeading">
+      <div class="section-header">
+        <div>
+          <p class="trend-eyebrow">Local storage</p>
+          <h2 id="storageHeading">Academic Profile</h2>
+        </div>
+        <span class="storage-badge" id="saveStatusBadge" data-state="warning">Ready to save</span>
+      </div>
+
+      <div class="storage-panel planner-card">
+        <div class="storage-meta-row">
+          <p id="restoreNotice" class="storage-restore-notice" hidden>Welcome back! Your academic data has been restored.</p>
+          <p id="saveStatusDetails" class="storage-save-details">Changes will be saved automatically.</p>
+        </div>
+
+        <div class="storage-stat-grid">
+          <article class="storage-stat">
+            <span>Last saved</span>
+            <strong id="storageLastSaved">Never</strong>
+          </article>
+          <article class="storage-stat">
+            <span>Semesters</span>
+            <strong id="storageSemesterCount">0</strong>
+          </article>
+          <article class="storage-stat">
+            <span>Courses</span>
+            <strong id="storageCourseCount">0</strong>
+          </article>
+          <article class="storage-stat">
+            <span>Current CGPA</span>
+            <strong id="storageCurrentCgpa">—</strong>
+          </article>
+          <article class="storage-stat">
+            <span>Target GPA</span>
+            <strong id="storageTargetGpa">—</strong>
+          </article>
+        </div>
+
+        <div class="storage-actions">
+          <button type="button" class="btn btn-secondary" id="exportJsonBtn">Export JSON</button>
+          <button type="button" class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
+          <button type="button" class="btn btn-secondary" id="importDataBtn">Import Data</button>
+          <button type="button" class="btn btn-secondary" id="clearDataBtn">Clear Data</button>
+          <input type="file" id="importDataInput" accept="application/json,.json,text/csv,.csv" hidden>
+        </div>
+      </div>
+    </section>
+
     <div class="main-content">
       <section class="courses-section">
         <div class="section-header">
