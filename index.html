@@ -89,6 +89,100 @@
       </section>
     </div>
 
+    <section class="trend-section" id="semesterTrendSection" aria-labelledby="trendHeading">
+      <div class="section-header">
+        <div>
+          <p class="trend-eyebrow">Academic analytics</p>
+          <h2 id="trendHeading">GPA Trend Graph</h2>
+        </div>
+        <p class="trend-section-note">Save semester GPA snapshots, review progress, and compare performance over time.</p>
+      </div>
+
+      <div class="trend-dashboard">
+        <div class="planner-card trend-chart-card">
+          <div class="trend-card-head">
+            <div>
+              <h3>Semester GPA trend</h3>
+              <p class="trend-card-note">Hover points to see exact GPA values and semester-to-semester change.</p>
+            </div>
+            <span class="trend-chart-legend" id="semesterChartLegend">Add records to see your trend</span>
+          </div>
+          <div class="trend-chart-wrap">
+            <canvas id="semesterTrendChart" hidden></canvas>
+            <div class="semester-empty-state" id="semesterTrendEmptyState">No semester data available. Add your first semester to view your GPA trend.</div>
+          </div>
+        </div>
+
+        <div class="trend-sidebar">
+          <div class="planner-card trend-summary-card">
+            <div class="trend-summary-grid">
+              <article class="trend-summary-item" id="semesterBestCard">
+                <strong>Best Semester</strong>
+                <span>No semester data yet</span>
+                <span>Add a record to begin</span>
+              </article>
+              <article class="trend-summary-item" id="semesterGrowthCard">
+                <strong>Overall Growth</strong>
+                <span>—</span>
+                <span>Add at least one semester</span>
+              </article>
+              <article class="trend-summary-item" id="semesterTrendCard">
+                <strong>Current Trend</strong>
+                <span>Stable</span>
+                <span>Add more semester records to detect a trend.</span>
+              </article>
+              <article class="trend-summary-item" id="semesterProjectionCard">
+                <strong>Trend Projection</strong>
+                <span>—</span>
+                <span>Add at least 2 semesters</span>
+              </article>
+              <article class="trend-summary-item" id="semesterComparisonCard">
+                <strong>Best Improvement</strong>
+                <span>—</span>
+                <span>Add at least 2 semesters</span>
+              </article>
+              <article class="trend-summary-item" id="semesterTargetCard">
+                <strong>Target GPA</strong>
+                <span>—</span>
+                <span>Set a goal to show the target line</span>
+              </article>
+            </div>
+          </div>
+
+          <div class="planner-card trend-manager-card">
+            <div class="trend-manager-head">
+              <div>
+                <h3>Semester Records</h3>
+                <p class="trend-card-note">Create or edit semester GPA records from your academic history.</p>
+              </div>
+              <button type="button" class="btn btn-secondary" id="semesterUseCurrentBtn">Use current GPA</button>
+            </div>
+
+            <form id="semesterTrendForm" class="semester-form">
+              <label class="semester-field">
+                <span>Semester label</span>
+                <input type="text" id="semesterLabel" placeholder="Semester 1" autocomplete="off">
+              </label>
+              <label class="semester-field">
+                <span>Semester GPA</span>
+                <input type="number" id="semesterGpa" min="0" max="4.5" step="0.01" placeholder="3.20">
+              </label>
+              <label class="semester-field">
+                <span>Target GPA</span>
+                <input type="number" id="semesterTargetGpa" min="0" max="4.5" step="0.01" placeholder="3.70">
+              </label>
+              <div class="semester-form-actions">
+                <button type="submit" class="btn btn-primary" id="semesterAddBtn">Add semester</button>
+                <button type="button" class="btn btn-secondary" id="semesterCancelBtn" hidden>Cancel edit</button>
+              </div>
+            </form>
+
+            <div id="semesterHistoryList" class="semester-history-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer class="app-footer">
@@ -96,6 +190,7 @@
     <p>Built for students to estimate grades, compare outcomes, and stay on track</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

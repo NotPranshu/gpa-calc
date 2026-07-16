@@ -1,5 +1,6 @@
 const CREDITS_PER_COURSE = 15;
 const PLANNER_STORAGE_KEY = "gpa-planner-state";
+const SEMESTER_HISTORY_STORAGE_KEY = "gpa-semester-history";
 const MAX_GPA_SCALE = 4.5;
 
 const GRADE_SCALE = [
@@ -23,6 +24,25 @@ const existingGpaInput = document.getElementById("existingGpa");
 const priorCoursesInput = document.getElementById("priorCourses");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const addCourseBtn = document.getElementById("addCourseBtn");
+
+const semesterTrendSection = document.getElementById("semesterTrendSection");
+const semesterTrendChartCanvas = document.getElementById("semesterTrendChart");
+const semesterTrendEmptyState = document.getElementById("semesterTrendEmptyState");
+const semesterTrendForm = document.getElementById("semesterTrendForm");
+const semesterLabelInput = document.getElementById("semesterLabel");
+const semesterGpaInput = document.getElementById("semesterGpa");
+const semesterTargetInput = document.getElementById("semesterTargetGpa");
+const semesterAddBtn = document.getElementById("semesterAddBtn");
+const semesterCancelBtn = document.getElementById("semesterCancelBtn");
+const semesterUseCurrentBtn = document.getElementById("semesterUseCurrentBtn");
+const semesterHistoryList = document.getElementById("semesterHistoryList");
+const semesterBestCard = document.getElementById("semesterBestCard");
+const semesterGrowthCard = document.getElementById("semesterGrowthCard");
+const semesterTrendCard = document.getElementById("semesterTrendCard");
+const semesterProjectionCard = document.getElementById("semesterProjectionCard");
+const semesterComparisonCard = document.getElementById("semesterComparisonCard");
+const semesterTargetCard = document.getElementById("semesterTargetCard");
+const semesterChartLegend = document.getElementById("semesterChartLegend");
 
 const plannerCurrentGpaInput = document.getElementById("plannerCurrentGpa");
 const plannerCompletedCreditsInput = document.getElementById("plannerCompletedCredits");
@@ -51,9 +71,30 @@ const plannerProgressProjectedLabel = document.getElementById("plannerProgressPr
 
 const hasCalculatorPage = Boolean(coursesList && gpaValue && scaleTableBody && hasExistingGpa && exportPdfBtn && addCourseBtn);
 const hasPlannerPage = Boolean(plannerCurrentGpaInput && plannerCourseList && plannerAddCourseBtn && plannerResetBtn && plannerResultsCard);
+const hasTrendPage = Boolean(semesterTrendSection && semesterTrendChartCanvas && semesterTrendForm && semesterLabelInput && semesterGpaInput && semesterTargetInput && semesterHistoryList);
 
 let courseIdCounter = 0;
 let plannerCourseIdCounter = 0;
+let semesterTrendChart = null;
+let semesterHistory = [];
+let semesterEditingId = null;
+
+function createSemesterId() {
+  return `semester-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
+
+function clampGpa(value) {
+  return Math.max(0, Math.min(MAX_GPA_SCALE, value));
+}
+
+function formatGpa(value, fractionDigits = 2) {
+  return Number.isFinite(value) ? value.toFixed(fractionDigits) : "—";
+}
+
+function normalizeSemesterLabel(label, fallbackIndex) {
+  const trimmed = label.trim();
+  return trimmed || `Semester ${fallbackIndex}`;
+}
 
 function getGradeByLetter(letter) {
   if (!letter) return null;
@@ -268,6 +309,477 @@ function getExistingGpaData() {
     credits: priorCourses * CREDITS_PER_COURSE,
     courses: priorCourses,
   };
+}
+
+function loadSemesterHistoryState() {
+  try {
+    const saved = localStorage.getItem(SEMESTER_HISTORY_STORAGE_KEY);
+    if (!saved) {
+      return { targetGpa: "", records: [] };
+    }
+
+    const parsed = JSON.parse(saved);
+    const records = Array.isArray(parsed.records) ? parsed.records : Array.isArray(parsed) ? parsed : [];
+
+    return {
+      targetGpa: parsed && typeof parsed.targetGpa !== "undefined" ? String(parsed.targetGpa) : "",
+      records: records
+        .map((record, index) => ({
+          id: record.id || createSemesterId(),
+          label: normalizeSemesterLabel(String(record.label || record.semester || ""), index + 1),
+          gpa: clampGpa(parseFloat(record.gpa)),
+          createdAt: Number.isFinite(parseInt(record.createdAt, 10)) ? parseInt(record.createdAt, 10) : Date.now() + index,
+        }))
+        .filter((record) => Number.isFinite(record.gpa)),
+    };
+  } catch (error) {
+    console.warn("Semester trend data could not be loaded", error);
+    return { targetGpa: "", records: [] };
+  }
+}
+
+function saveSemesterHistoryState() {
+  if (!hasTrendPage) return;
+
+  const state = {
+    targetGpa: semesterTargetInput.value.trim(),
+    records: semesterHistory,
+  };
+
+  try {
+    localStorage.setItem(SEMESTER_HISTORY_STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Semester trend data could not be saved", error);
+  }
+}
+
+function getSemesterRecordsSorted() {
+  return [...semesterHistory].sort((left, right) => left.createdAt - right.createdAt);
+}
+
+function getTrendStats(records) {
+  if (records.length === 0) {
+    return {
+      best: null,
+      growth: null,
+      trend: "No semester data available",
+      projection: null,
+      comparison: null,
+      bestImprovement: null,
+    };
+  }
+
+  const best = records.reduce((highest, record) => (record.gpa > highest.gpa ? record : highest), records[0]);
+  const first = records[0];
+  const latest = records[records.length - 1];
+  const growth = latest.gpa - first.gpa;
+
+  const recentWindow = records.slice(-3);
+  let trend = "Stable";
+  if (recentWindow.length >= 2) {
+    const diffs = recentWindow.slice(1).map((record, index) => record.gpa - recentWindow[index].gpa);
+    const improving = diffs.every((delta) => delta > 0.02);
+    const declining = diffs.every((delta) => delta < -0.02);
+    if (improving) trend = "Improving";
+    if (declining) trend = "Declining";
+  }
+
+  let bestImprovement = null;
+  let comparison = null;
+  if (records.length >= 2) {
+    let strongestDelta = Number.NEGATIVE_INFINITY;
+    for (let index = 1; index < records.length; index += 1) {
+      const previous = records[index - 1];
+      const current = records[index];
+      const delta = current.gpa - previous.gpa;
+      if (delta > strongestDelta) {
+        strongestDelta = delta;
+        bestImprovement = { from: previous, to: current, delta };
+      }
+    }
+    comparison = { from: records[records.length - 2], to: latest, delta: latest.gpa - records[records.length - 2].gpa };
+  }
+
+  let projection = null;
+  if (records.length >= 2) {
+    const deltas = records.slice(1).map((record, index) => record.gpa - records[index].gpa);
+    const recentDeltas = deltas.slice(-3);
+    const averageDelta = recentDeltas.reduce((sum, value) => sum + value, 0) / recentDeltas.length;
+    projection = clampGpa(latest.gpa + averageDelta);
+  }
+
+  return {
+    best,
+    growth,
+    trend,
+    projection,
+    comparison,
+    bestImprovement,
+  };
+}
+
+function buildTrendChartColors() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    text: styles.getPropertyValue("--text").trim() || "#f3efe6",
+    muted: styles.getPropertyValue("--text-muted").trim() || "#a8a39a",
+    primary: styles.getPropertyValue("--primary").trim() || "#54c1ff",
+    success: styles.getPropertyValue("--success").trim() || "#7ebf9b",
+    warning: styles.getPropertyValue("--warning").trim() || "#54c1ff",
+    border: styles.getPropertyValue("--border").trim() || "rgba(84, 193, 255, 0.18)",
+    surface: styles.getPropertyValue("--surface").trim() || "#0f0f10",
+    surfaceSoft: styles.getPropertyValue("--surface-soft").trim() || "#161617",
+  };
+}
+
+function updateTrendEmptyState(records) {
+  if (!semesterTrendEmptyState || !semesterTrendChartCanvas) return;
+  const hasData = records.length > 0;
+  semesterTrendEmptyState.hidden = hasData;
+  semesterTrendChartCanvas.hidden = !hasData;
+}
+
+function renderSemesterHistoryList(records) {
+  if (!semesterHistoryList) return;
+
+  if (records.length === 0) {
+    semesterHistoryList.innerHTML = '<div class="semester-empty-state">No semester data available. Add your first semester to view your GPA trend.</div>';
+    return;
+  }
+
+  semesterHistoryList.innerHTML = records.map((record) => `
+    <article class="semester-history-item" data-id="${record.id}">
+      <div class="semester-history-copy">
+        <strong>${record.label}</strong>
+        <span>${record.gpa.toFixed(2)} GPA</span>
+      </div>
+      <div class="semester-history-actions">
+        <button type="button" class="btn btn-secondary semester-edit-btn" data-action="edit" data-id="${record.id}">Edit</button>
+        <button type="button" class="btn btn-remove semester-delete-btn" data-action="delete" data-id="${record.id}" aria-label="Delete ${record.label}">×</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function renderTrendSummaryCards(records) {
+  if (!hasTrendPage) return;
+
+  const stats = getTrendStats(records);
+
+  if (semesterBestCard) {
+    semesterBestCard.innerHTML = stats.best
+      ? `<strong>Best Semester</strong><span>${stats.best.label}</span><span>${stats.best.gpa.toFixed(2)} GPA</span>`
+      : `<strong>Best Semester</strong><span>No semester data yet</span><span>Add a record to begin</span>`;
+  }
+
+  if (semesterGrowthCard) {
+    semesterGrowthCard.innerHTML = stats.growth !== null
+      ? `<strong>Overall Growth</strong><span>${stats.growth >= 0 ? "+" : ""}${stats.growth.toFixed(2)}</span><span>Since ${records[0].label}</span>`
+      : `<strong>Overall Growth</strong><span>—</span><span>Add at least one semester</span>`;
+  }
+
+  if (semesterTrendCard) {
+    semesterTrendCard.innerHTML = `<strong>Current Trend</strong><span>${stats.trend}</span><span>${stats.trend === "Improving" ? "Your GPA has increased over the last 3 semesters." : stats.trend === "Declining" ? "Your GPA has decreased recently." : records.length > 1 ? "Your GPA has remained consistent." : "Add more semester records to detect a trend."}</span>`;
+  }
+
+  if (semesterProjectionCard) {
+    semesterProjectionCard.innerHTML = stats.projection !== null
+      ? `<strong>Trend Projection</strong><span>${stats.projection.toFixed(2)} GPA</span><span>Projected next semester</span>`
+      : `<strong>Trend Projection</strong><span>—</span><span>Add at least 2 semesters</span>`;
+  }
+
+  if (semesterComparisonCard) {
+    semesterComparisonCard.innerHTML = stats.bestImprovement
+      ? `<strong>Best Improvement</strong><span>${stats.bestImprovement.from.label} → ${stats.bestImprovement.to.label}</span><span>${stats.bestImprovement.delta >= 0 ? "+" : ""}${stats.bestImprovement.delta.toFixed(2)} GPA change</span>`
+      : `<strong>Best Improvement</strong><span>—</span><span>Add at least 2 semesters</span>`;
+  }
+
+  if (semesterTargetCard) {
+    const targetValue = parseFloat(semesterTargetInput?.value || "");
+    if (Number.isFinite(targetValue)) {
+      const targetGap = stats.best ? targetValue - stats.best.gpa : targetValue;
+      semesterTargetCard.innerHTML = `<strong>Target GPA</strong><span>${targetValue.toFixed(2)}</span><span>${targetGap >= 0 ? `${targetGap.toFixed(2)} above your best semester` : `${Math.abs(targetGap).toFixed(2)} below your best semester`}</span>`;
+    } else {
+      semesterTargetCard.innerHTML = `<strong>Target GPA</strong><span>—</span><span>Set a goal to show the target line</span>`;
+    }
+  }
+
+  if (semesterChartLegend) {
+    semesterChartLegend.textContent = stats.best ? `Highest semester: ${stats.best.label}` : "Add records to see your trend";
+  }
+}
+
+function renderTrendChart(records) {
+  if (!hasTrendPage || !semesterTrendChartCanvas) return;
+
+  updateTrendEmptyState(records);
+
+  if (!records.length) {
+    if (semesterTrendChart) {
+      semesterTrendChart.destroy();
+      semesterTrendChart = null;
+    }
+    renderTrendSummaryCards(records);
+    return;
+  }
+
+  const labels = records.map((record) => record.label);
+  const values = records.map((record) => record.gpa);
+  const targetGpa = parseFloat(semesterTargetInput?.value || "");
+  const targetLine = Number.isFinite(targetGpa) ? labels.map(() => clampGpa(targetGpa)) : null;
+  const colors = buildTrendChartColors();
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: "Semester GPA",
+        data: values,
+        borderColor: colors.primary,
+        backgroundColor: colors.primary,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointBackgroundColor: colors.primary,
+        pointBorderColor: colors.surface,
+        pointBorderWidth: 2,
+        fill: true,
+        tension: 0.32,
+        order: 1,
+      },
+    ],
+  };
+
+  if (targetLine) {
+    chartData.datasets.push({
+      label: "Target GPA",
+      data: targetLine,
+      borderColor: colors.warning,
+      borderDash: [8, 6],
+      borderWidth: 2,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
+      tension: 0,
+      order: 0,
+    });
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 900,
+      easing: "easeOutQuart",
+    },
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: colors.surfaceSoft,
+        borderColor: colors.border,
+        borderWidth: 1,
+        titleColor: colors.text,
+        bodyColor: colors.text,
+        padding: 12,
+        displayColors: false,
+        callbacks: {
+          title(items) {
+            const item = items[0];
+            const record = records[item.dataIndex];
+            return record ? record.label : "Semester";
+          },
+          label(context) {
+            if (context.datasetIndex !== 0) {
+              return null;
+            }
+
+            const current = context.parsed.y;
+            const previous = context.dataIndex > 0 ? values[context.dataIndex - 1] : null;
+            const change = previous !== null ? current - previous : null;
+            const lines = [`GPA: ${formatGpa(current)}`];
+
+            if (change !== null) {
+              lines.push(`Change: ${change >= 0 ? "+" : ""}${formatGpa(change)}`);
+            } else {
+              lines.push("Change: First semester in the record");
+            }
+
+            return lines;
+          },
+          afterBody(items) {
+            const item = items.find((entry) => entry.datasetIndex === 0);
+            if (!item || item.datasetIndex !== 0 || item.dataIndex === 0) {
+              return "";
+            }
+
+            const current = values[item.dataIndex];
+            const previous = values[item.dataIndex - 1];
+            const change = current - previous;
+            return change >= 0
+              ? `Improved by ${change.toFixed(2)} from previous semester.`
+              : `Declined by ${Math.abs(change).toFixed(2)} from previous semester.`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: colors.border,
+        },
+        ticks: {
+          color: colors.muted,
+          font: {
+            size: 12,
+          },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        suggestedMax: MAX_GPA_SCALE,
+        max: MAX_GPA_SCALE,
+        grid: {
+          color: colors.border,
+        },
+        ticks: {
+          color: colors.muted,
+          stepSize: 0.5,
+          callback(value) {
+            return Number(value).toFixed(1);
+          },
+        },
+      },
+    },
+  };
+
+  if (!semesterTrendChart) {
+    const context = semesterTrendChartCanvas.getContext("2d");
+    if (!context || typeof Chart === "undefined") {
+      semesterTrendEmptyState.hidden = false;
+      semesterTrendEmptyState.textContent = "Chart rendering is unavailable in this browser session.";
+      semesterTrendChartCanvas.hidden = true;
+      return;
+    }
+
+    semesterTrendChart = new Chart(context, {
+      type: "line",
+      data: chartData,
+      options: chartOptions,
+    });
+  } else {
+    semesterTrendChart.data = chartData;
+    semesterTrendChart.options = chartOptions;
+    semesterTrendChart.update();
+  }
+
+  renderTrendSummaryCards(records);
+}
+
+function syncSemesterTrend() {
+  if (!hasTrendPage) return;
+  const records = getSemesterRecordsSorted();
+  semesterHistory = records;
+  renderSemesterHistoryList(records);
+  renderTrendChart(records);
+  saveSemesterHistoryState();
+}
+
+function resetSemesterForm() {
+  if (!hasTrendPage || !semesterTrendForm) return;
+  const targetValue = semesterTargetInput.value;
+  semesterEditingId = null;
+  semesterTrendForm.reset();
+  semesterTargetInput.value = targetValue;
+  if (semesterAddBtn) {
+    semesterAddBtn.textContent = "Add semester";
+  }
+  if (semesterCancelBtn) {
+    semesterCancelBtn.hidden = true;
+  }
+}
+
+function loadSemesterForm(record) {
+  if (!hasTrendPage || !record) return;
+  semesterEditingId = record.id;
+  semesterLabelInput.value = record.label;
+  semesterGpaInput.value = record.gpa.toFixed(2);
+  if (semesterAddBtn) {
+    semesterAddBtn.textContent = "Update semester";
+  }
+  if (semesterCancelBtn) {
+    semesterCancelBtn.hidden = false;
+  }
+  semesterLabelInput.focus();
+}
+
+function removeSemesterRecord(recordId) {
+  semesterHistory = semesterHistory.filter((record) => record.id !== recordId);
+  if (semesterEditingId === recordId) {
+    resetSemesterForm();
+  }
+  syncSemesterTrend();
+}
+
+function upsertSemesterRecord(event) {
+  event.preventDefault();
+  if (!hasTrendPage) return;
+
+  const label = semesterLabelInput.value.trim();
+  const gpa = parseFloat(semesterGpaInput.value);
+
+  if (!Number.isFinite(gpa) || gpa < 0 || gpa > MAX_GPA_SCALE) {
+    semesterGpaInput.focus();
+    return;
+  }
+
+  const nextRecord = {
+    id: semesterEditingId || createSemesterId(),
+    label: normalizeSemesterLabel(label, semesterHistory.length + 1),
+    gpa: clampGpa(gpa),
+    createdAt: semesterEditingId ? semesterHistory.find((record) => record.id === semesterEditingId)?.createdAt || Date.now() : Date.now(),
+  };
+
+  if (semesterEditingId) {
+    semesterHistory = semesterHistory.map((record) => (record.id === semesterEditingId ? nextRecord : record));
+  } else {
+    semesterHistory = [...semesterHistory, nextRecord];
+  }
+
+  resetSemesterForm();
+  syncSemesterTrend();
+}
+
+function handleTrendListClick(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  const action = target.dataset.action;
+  const recordId = target.dataset.id;
+  if (!action || !recordId) return;
+
+  const record = semesterHistory.find((item) => item.id === recordId);
+  if (!record) return;
+
+  if (action === "edit") {
+    loadSemesterForm(record);
+  } else if (action === "delete") {
+    removeSemesterRecord(recordId);
+  }
+}
+
+function loadSemesterHistoryFromStorage() {
+  if (!hasTrendPage) return;
+  const saved = loadSemesterHistoryState();
+  semesterHistory = saved.records;
+  if (semesterTargetInput && saved.targetGpa !== "") {
+    semesterTargetInput.value = saved.targetGpa;
+  }
 }
 
 function calculateGPA() {
@@ -660,6 +1172,45 @@ if (hasCalculatorPage) {
   renderScaleTable();
   updateEmptyState();
   calculateGPA();
+}
+
+if (hasTrendPage) {
+  loadSemesterHistoryFromStorage();
+  syncSemesterTrend();
+
+  semesterTrendForm.addEventListener("submit", upsertSemesterRecord);
+  semesterHistoryList.addEventListener("click", handleTrendListClick);
+
+  if (semesterCancelBtn) {
+    semesterCancelBtn.addEventListener("click", resetSemesterForm);
+  }
+
+  if (semesterUseCurrentBtn) {
+    semesterUseCurrentBtn.addEventListener("click", () => {
+      const currentGpa = parseFloat(gpaValue?.textContent || "");
+      if (!Number.isFinite(currentGpa)) return;
+      semesterGpaInput.value = currentGpa.toFixed(2);
+      semesterLabelInput.value = semesterLabelInput.value || `Semester ${semesterHistory.length + 1}`;
+      semesterGpaInput.focus();
+    });
+  }
+
+  if (semesterTargetInput) {
+    semesterTargetInput.addEventListener("input", () => {
+      saveSemesterHistoryState();
+      renderTrendChart(getSemesterRecordsSorted());
+    });
+  }
+
+  if (window.matchMedia) {
+    const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncTheme = () => renderTrendChart(getSemesterRecordsSorted());
+    if (typeof themeQuery.addEventListener === "function") {
+      themeQuery.addEventListener("change", syncTheme);
+    } else if (typeof themeQuery.addListener === "function") {
+      themeQuery.addListener(syncTheme);
+    }
+  }
 }
 
 if (hasPlannerPage) {

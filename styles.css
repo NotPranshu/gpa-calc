@@ -7,7 +7,7 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark light;
   --bg: #000000;
   --bg-elevated: #050505;
   --surface: #0f0f10;
@@ -804,6 +804,282 @@ select:focus-visible {
   color: var(--danger);
 }
 
+.trend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.trend-section-note,
+.trend-card-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.trend-eyebrow {
+  margin-bottom: 0.28rem;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.trend-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.trend-chart-card,
+.trend-summary-card,
+.trend-manager-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trend-card-head,
+.trend-manager-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.trend-card-head h3,
+.trend-manager-head h3 {
+  margin: 0;
+  font-family: "Merriweather", Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.trend-chart-legend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.trend-chart-wrap {
+  position: relative;
+  height: clamp(320px, 42vw, 500px);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #121213;
+  overflow: hidden;
+}
+
+.trend-chart-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.trend-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.trend-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #131314;
+}
+
+.trend-summary-item strong {
+  color: var(--text);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.trend-summary-item span:first-of-type {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.trend-summary-item span:last-of-type {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.semester-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.semester-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.semester-field span {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.semester-field input {
+  min-height: 48px;
+  padding: 0.78rem 0.85rem;
+  font-size: 0.96rem;
+}
+
+.semester-form-actions {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  justify-content: flex-start;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+}
+
+.semester-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.semester-history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #131314;
+}
+
+.semester-history-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.semester-history-copy strong {
+  font-size: 0.98rem;
+}
+
+.semester-history-copy span {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.semester-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.semester-empty-state {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background: #111111;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f6f8;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-solid: #f6f8fb;
+    --surface-soft: #eef2f7;
+    --border: rgba(20, 33, 61, 0.12);
+    --border-strong: rgba(20, 33, 61, 0.2);
+    --text: #10243f;
+    --text-muted: #5c6778;
+    --primary: #0b7fd8;
+    --primary-strong: #0664ad;
+    --primary-contrast: #ffffff;
+    --success: #13795b;
+    --warning: #a96800;
+    --danger: #a83434;
+    --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.8), 0 10px 24px rgba(16, 36, 63, 0.08);
+    --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.85), 0 18px 40px rgba(16, 36, 63, 0.12);
+    --focus-ring: 0 0 0 3px rgba(11, 127, 216, 0.18);
+  }
+
+  body {
+    background: linear-gradient(180deg, #f8fafc, #eef3f8);
+  }
+
+  body::before {
+    opacity: 0.08;
+  }
+
+  .navbar,
+  .page-hero,
+  .gpa-display,
+  .planner-card,
+  .courses-section,
+  .scale-section,
+  .trend-chart-wrap,
+  .trend-summary-item,
+  .semester-history-item,
+  .semester-empty-state,
+  .course-row,
+  .planner-stat,
+  .planner-progress-card,
+  .planner-feedback,
+  .empty-state,
+  .planner-empty-state {
+    background: #ffffff;
+  }
+
+  .navbar {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .nav-link:hover,
+  .nav-social:hover,
+  .hero-link:hover,
+  .btn-secondary,
+  .btn-remove {
+    background: #eef3f8;
+  }
+
+  .trend-chart-wrap,
+  .trend-summary-item,
+  .semester-history-item,
+  .course-row,
+  .planner-stat,
+  .planner-progress-card,
+  .planner-feedback,
+  .empty-state,
+  .planner-empty-state,
+  .semester-empty-state {
+    border-color: var(--border);
+  }
+}
+
 .app-footer {
   width: min(1240px, calc(100% - 2rem));
   margin: 0 auto;
@@ -861,6 +1137,10 @@ select:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .trend-dashboard {
+    grid-template-columns: 1fr;
+  }
+
   .scale-section {
     position: static;
   }
@@ -892,12 +1172,15 @@ select:focus-visible {
   }
 
   .planner-input-grid,
-  .planner-stat-grid {
+  .planner-stat-grid,
+  .trend-summary-grid,
+  .semester-form {
     grid-template-columns: 1fr;
   }
 
   .planner-course-row,
-  .course-row {
+  .course-row,
+  .semester-history-item {
     grid-template-columns: 1fr;
   }
 
@@ -910,7 +1193,9 @@ select:focus-visible {
 
   .section-header,
   .planner-course-header,
-  .planner-progress-head {
+  .planner-progress-head,
+  .trend-card-head,
+  .trend-manager-head {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -921,6 +1206,18 @@ select:focus-visible {
 
   .planner-progress-labels {
     flex-direction: column;
+  }
+
+  .trend-chart-wrap {
+    height: 300px;
+  }
+
+  .semester-history-actions {
+    width: 100%;
+  }
+
+  .semester-history-actions .btn {
+    flex: 1 1 0;
   }
 
   .app-footer {
@@ -976,6 +1273,11 @@ select:focus-visible {
 
   .section-actions {
     width: 100%;
+  }
+
+  .trend-chart-wrap {
+    height: 280px;
+    padding: 0.85rem;
   }
 
   .section-actions .btn {
