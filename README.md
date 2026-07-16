@@ -20,7 +20,7 @@ A simple browser-based GPA calculator for estimating cumulative GPA from course 
 
 ## How to Use
 
-1. Open `index.html` in a web browser.
+1. Open `unigpacalc.netlify.app` in a web browser.
 2. Click **Add Course** to add a course row.
 3. Enter a course name if you want to label it.
 4. Select a letter grade for each course.
@@ -44,12 +44,4 @@ The calculator uses a 4.5-point scale:
 
 Each course is currently treated as 15 credits in the GPA calculation.
 
-## Project Structure
 
-```text
-.
-├── index.html
-├── styles.css
-├── app.js
-└── README.md
-```
