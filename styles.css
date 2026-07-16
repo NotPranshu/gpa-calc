@@ -900,6 +900,209 @@ select:focus-visible {
   gap: 0.7rem;
 }
 
+.scanner-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.scanner-section-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.scanner-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.scanner-upload-card,
+.scanner-review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scanner-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.15rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-strong);
+  background: linear-gradient(180deg, #151516, #101011);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.scanner-dropzone:hover,
+.scanner-dropzone.dragover {
+  border-color: var(--primary);
+  background: linear-gradient(180deg, #18191a, #131314);
+  transform: translateY(-1px);
+}
+
+.scanner-dropzone-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+}
+
+.scanner-icon {
+  width: 2.55rem;
+  height: 2.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--primary);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-soft);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.scanner-dropzone-copy strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.scanner-dropzone-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.scanner-status {
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #131314;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.scanner-status[data-state="success"] {
+  color: var(--success);
+}
+
+.scanner-status[data-state="warning"] {
+  color: var(--warning);
+}
+
+.scanner-status[data-state="danger"] {
+  color: var(--danger);
+}
+
+.scanner-confidence {
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #111111;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.scanner-review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.scanner-semester-field {
+  min-width: 220px;
+}
+
+.scanner-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.scanner-preview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #131314;
+}
+
+.scanner-preview-stat span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scanner-preview-stat strong {
+  font-size: 1.05rem;
+}
+
+.scanner-table-wrap {
+  overflow: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #111111;
+}
+
+.scanner-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.scanner-table th,
+.scanner-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0.7rem;
+  text-align: left;
+}
+
+.scanner-table th {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scanner-table input,
+.scanner-table select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-solid);
+  color: var(--text);
+  padding: 0.68rem 0.75rem;
+}
+
+.scanner-grade-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.scanner-remove-row {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+}
+
+.scanner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
 .storage-section .section-header {
   align-items: flex-start;
 }
@@ -1136,6 +1339,11 @@ select:focus-visible {
   .courses-section,
   .scale-section,
   .storage-panel,
+  .scanner-dropzone,
+  .scanner-status,
+  .scanner-confidence,
+  .scanner-preview-stat,
+  .scanner-table-wrap,
   .trend-chart-wrap,
   .trend-summary-item,
   .semester-history-item,
@@ -1173,7 +1381,11 @@ select:focus-visible {
   .planner-empty-state,
   .semester-empty-state,
   .storage-stat,
-  .storage-panel {
+  .storage-panel,
+  .scanner-table-wrap,
+  .scanner-status,
+  .scanner-confidence,
+  .scanner-preview-stat {
     border-color: var(--border);
   }
 }
@@ -1235,6 +1447,10 @@ select:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .scanner-dashboard {
+    grid-template-columns: 1fr;
+  }
+
   .trend-dashboard {
     grid-template-columns: 1fr;
   }
@@ -1273,6 +1489,7 @@ select:focus-visible {
   .planner-stat-grid,
   .trend-summary-grid,
   .storage-stat-grid,
+  .scanner-preview-grid,
   .semester-form {
     grid-template-columns: 1fr;
   }
@@ -1293,6 +1510,7 @@ select:focus-visible {
   .section-header,
   .planner-course-header,
   .planner-progress-head,
+  .scanner-review-head,
   .trend-card-head,
   .trend-manager-head {
     flex-direction: column;
@@ -1316,6 +1534,16 @@ select:focus-visible {
   }
 
   .semester-history-actions .btn {
+    flex: 1 1 0;
+  }
+
+  .scanner-dropzone-actions,
+  .scanner-actions {
+    width: 100%;
+  }
+
+  .scanner-dropzone-actions .btn,
+  .scanner-actions .btn {
     flex: 1 1 0;
   }
 
@@ -1377,6 +1605,10 @@ select:focus-visible {
   .trend-chart-wrap {
     height: 280px;
     padding: 0.85rem;
+  }
+
+  .scanner-table {
+    min-width: 560px;
   }
 
   .section-actions .btn {
