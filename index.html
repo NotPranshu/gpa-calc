@@ -39,76 +39,78 @@
   </nav>
 
   <main class="app">
-    <section class="gpa-display">
-      <div class="gpa-value" id="gpaValue">&mdash;</div>
-      <div class="gpa-label">Cumulative GPA</div>
-      <div class="gpa-meta" id="gpaMeta">Add courses to get started</div>
+    <div class="top-layout">
+      <section class="gpa-display">
+        <div class="gpa-value" id="gpaValue">&mdash;</div>
+        <div class="gpa-label">Cumulative GPA</div>
+        <div class="gpa-meta" id="gpaMeta">Add courses to get started</div>
 
-      <div class="existing-gpa">
-        <label class="existing-gpa-toggle">
-          <input type="checkbox" id="hasExistingGpa">
-          <span>I already have a GPA</span>
-        </label>
-        <div class="existing-gpa-fields" id="existingGpaFields" hidden>
-          <label class="existing-gpa-field">
-            <span>Current GPA</span>
-            <input type="number" id="existingGpa" min="0" max="4.5" step="0.01" placeholder="e.g. 3.25">
+        <div class="existing-gpa">
+          <label class="existing-gpa-toggle">
+            <input type="checkbox" id="hasExistingGpa">
+            <span>I already have a GPA</span>
           </label>
-          <label class="existing-gpa-field">
-            <span>Prior courses</span>
-            <input type="number" id="priorCourses" min="1" step="1" placeholder="e.g. 8">
-          </label>
+          <div class="existing-gpa-fields" id="existingGpaFields" hidden>
+            <label class="existing-gpa-field">
+              <span>Current GPA</span>
+              <input type="number" id="existingGpa" min="0" max="4.5" step="0.01" placeholder="e.g. 3.25">
+            </label>
+            <label class="existing-gpa-field">
+              <span>Prior courses</span>
+              <input type="number" id="priorCourses" min="1" step="1" placeholder="e.g. 8">
+            </label>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="storage-section" aria-labelledby="storageHeading">
-      <div class="section-header">
-        <div>
-          <p class="trend-eyebrow">Local storage</p>
-          <h2 id="storageHeading">Academic Profile</h2>
-        </div>
-        <span class="storage-badge" id="saveStatusBadge" data-state="warning">Ready to save</span>
-      </div>
-
-      <div class="storage-panel planner-card">
-        <div class="storage-meta-row">
-          <p id="restoreNotice" class="storage-restore-notice" hidden>Welcome back! Your academic data has been restored.</p>
-          <p id="saveStatusDetails" class="storage-save-details">Changes will be saved automatically.</p>
-        </div>
-
-        <div class="storage-stat-grid">
-          <article class="storage-stat">
-            <span>Last saved</span>
-            <strong id="storageLastSaved">Never</strong>
-          </article>
-          <article class="storage-stat">
-            <span>Semesters</span>
-            <strong id="storageSemesterCount">0</strong>
-          </article>
-          <article class="storage-stat">
-            <span>Courses</span>
-            <strong id="storageCourseCount">0</strong>
-          </article>
-          <article class="storage-stat">
-            <span>Current CGPA</span>
-            <strong id="storageCurrentCgpa">—</strong>
-          </article>
-          <article class="storage-stat">
-            <span>Target GPA</span>
-            <strong id="storageTargetGpa">—</strong>
-          </article>
+      <section class="storage-section" aria-labelledby="storageHeading">
+        <div class="section-header">
+          <div>
+            <p class="trend-eyebrow">Local storage</p>
+            <h2 id="storageHeading">Academic Profile</h2>
+          </div>
+          <span class="storage-badge" id="saveStatusBadge" data-state="warning">Ready to save</span>
         </div>
 
-        <div class="storage-actions">
-          <button type="button" class="btn btn-secondary" id="exportJsonBtn">Export JSON</button>
-          <button type="button" class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
-          <button type="button" class="btn btn-secondary" id="importDataBtn">Import Data</button>
-          <button type="button" class="btn btn-secondary" id="clearDataBtn">Clear Data</button>
-          <input type="file" id="importDataInput" accept="application/json,.json,text/csv,.csv" hidden>
+        <div class="storage-panel planner-card">
+          <div class="storage-meta-row">
+            <p id="restoreNotice" class="storage-restore-notice" hidden>Welcome back! Your academic data has been restored.</p>
+            <p id="saveStatusDetails" class="storage-save-details">Changes will be saved automatically.</p>
+          </div>
+
+          <div class="storage-stat-grid">
+            <article class="storage-stat">
+              <span>Last saved</span>
+              <strong id="storageLastSaved">Never</strong>
+            </article>
+            <article class="storage-stat">
+              <span>Semesters</span>
+              <strong id="storageSemesterCount">0</strong>
+            </article>
+            <article class="storage-stat">
+              <span>Courses</span>
+              <strong id="storageCourseCount">0</strong>
+            </article>
+            <article class="storage-stat">
+              <span>Current CGPA</span>
+              <strong id="storageCurrentCgpa">—</strong>
+            </article>
+            <article class="storage-stat">
+              <span>Target GPA</span>
+              <strong id="storageTargetGpa">—</strong>
+            </article>
+          </div>
+
+          <div class="storage-actions">
+            <button type="button" class="btn btn-secondary" id="exportJsonBtn">Export JSON</button>
+            <button type="button" class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
+            <button type="button" class="btn btn-secondary" id="importDataBtn">Import Data</button>
+            <button type="button" class="btn btn-secondary" id="clearDataBtn">Clear Data</button>
+            <input type="file" id="importDataInput" accept="application/json,.json,text/csv,.csv" hidden>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <section class="scanner-section" id="gpaScannerSection" aria-labelledby="scannerHeading">
       <div class="section-header">
@@ -187,6 +189,7 @@
           </div>
 
           <div class="scanner-actions">
+            <button type="button" class="btn btn-secondary" id="scannerResetBtn">Reset</button>
             <button type="button" class="btn btn-secondary" id="scannerEditBtn" disabled>Edit</button>
             <button type="button" class="btn btn-primary" id="scannerConfirmBtn" disabled>Confirm Import</button>
           </div>

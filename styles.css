@@ -287,6 +287,18 @@ select:focus-visible {
   gap: 1.25rem;
 }
 
+.top-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.top-layout .gpa-display,
+.top-layout .storage-section {
+  min-width: 0;
+}
+
 .gpa-display,
 .planner-card,
 .courses-section,
@@ -868,7 +880,7 @@ select:focus-visible {
 
 .storage-stat-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 0.8rem;
 }
 
@@ -898,6 +910,10 @@ select:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
+}
+
+.storage-actions .btn {
+  flex: 1 1 10rem;
 }
 
 .scanner-section {
@@ -1101,6 +1117,10 @@ select:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
+}
+
+.scanner-actions .btn {
+  flex: 1 1 10rem;
 }
 
 .storage-section .section-header {
@@ -1442,6 +1462,7 @@ select:focus-visible {
 }
 
 @media (max-width: 1080px) {
+  .top-layout,
   .planner-dashboard,
   .main-content {
     grid-template-columns: 1fr;
