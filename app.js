@@ -58,21 +58,6 @@ const semesterComparisonCard = document.getElementById("semesterComparisonCard")
 const semesterTargetCard = document.getElementById("semesterTargetCard");
 const semesterChartLegend = document.getElementById("semesterChartLegend");
 
-const scannerDropzone = document.getElementById("scannerDropzone");
-const scannerFileInput = document.getElementById("scannerFileInput");
-const scannerBrowseBtn = document.getElementById("scannerBrowseBtn");
-const scannerScanBtn = document.getElementById("scannerScanBtn");
-const scannerStatus = document.getElementById("scannerStatus");
-const scannerConfidence = document.getElementById("scannerConfidence");
-const scannerSemesterLabel = document.getElementById("scannerSemesterLabel");
-const scannerSemesterGpa = document.getElementById("scannerSemesterGpa");
-const scannerTotalCredits = document.getElementById("scannerTotalCredits");
-const scannerCourseCount = document.getElementById("scannerCourseCount");
-const scannerConfidenceValue = document.getElementById("scannerConfidenceValue");
-const scannerReviewBody = document.getElementById("scannerReviewBody");
-const scannerEditBtn = document.getElementById("scannerEditBtn");
-const scannerConfirmBtn = document.getElementById("scannerConfirmBtn");
-
 const plannerCurrentGpaInput = document.getElementById("plannerCurrentGpa");
 const plannerCompletedCreditsInput = document.getElementById("plannerCompletedCredits");
 const plannerTargetGpaInput = document.getElementById("plannerTargetGpa");
@@ -102,7 +87,6 @@ const hasCalculatorPage = Boolean(coursesList && gpaValue && scaleTableBody && h
 const hasPlannerPage = Boolean(plannerCurrentGpaInput && plannerCourseList && plannerAddCourseBtn && plannerResetBtn && plannerResultsCard);
 const hasTrendPage = Boolean(semesterTrendSection && semesterTrendChartCanvas && semesterTrendForm && semesterLabelInput && semesterGpaInput && semesterTargetInput && semesterHistoryList);
 const hasStorageControls = Boolean(saveStatusBadge && saveStatusDetails && storageLastSaved && storageSemesterCount && storageCourseCount && storageCurrentCgpa && storageTargetGpa);
-const hasScannerPage = Boolean(scannerDropzone && scannerFileInput && scannerBrowseBtn && scannerScanBtn && scannerStatus && scannerReviewBody && scannerConfirmBtn);
 
 let courseIdCounter = 0;
 let plannerCourseIdCounter = 0;
@@ -111,12 +95,6 @@ let semesterHistory = [];
 let semesterEditingId = null;
 let academicProfile = null;
 let profileLoaded = false;
-let scannerFile = null;
-let scannerExtractedRows = [];
-let scannerExtractedText = "";
-let scannerExtractedConfidence = null;
-let scannerProcessing = false;
-let scannerEditMode = true;
 
 function createEmptyAcademicProfile() {
   return {
@@ -171,352 +149,6 @@ function formatRelativeTime(dateString) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-function createSemesterId() {
-  return `semester-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-}
-
-function clampGpa(value) {
-  return Math.max(0, Math.min(MAX_GPA_SCALE, value));
-}
-
-function formatGpa(value, fractionDigits = 2) {
-  return Number.isFinite(value) ? value.toFixed(fractionDigits) : "—";
-}
-
-function normalizeSemesterLabel(label, fallbackIndex) {
-  const trimmed = label.trim();
-  return trimmed || `Semester ${fallbackIndex}`;
-}
-
-function getSemesterGpaValue(record) {
-  const value = safeNumber(record?.semesterGPA ?? record?.gpa);
-  return value === null ? null : clampGpa(value);
-}
-
-function serializeCourseRow(row) {
-  return {
-    name: row.querySelector(".name-input")?.value.trim() || "",
-    grade: row.querySelector(".grade-input")?.value || "",
-  };
-}
-
-function captureSemesterCourses() {
-  if (!coursesList) return [];
-
-  return Array.from(coursesList.querySelectorAll(".course-row")).map((row) => ({
-    code: "",
-    name: row.querySelector(".name-input")?.value.trim() || "",
-    credits: CREDITS_PER_COURSE,
-    grade: row.querySelector(".grade-input")?.value || "",
-  }));
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function escapeRegExp(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function inferSemesterLabelFromFile(fileName, detectedText, fallbackIndex) {
-  const fromFileName = String(fileName || "").match(/semester\s*(\d+)/i);
-  if (fromFileName) return `Semester ${fromFileName[1]}`;
-
-  const fromText = String(detectedText || "").match(/semester\s*(\d+)/i);
-  if (fromText) return `Semester ${fromText[1]}`;
-
-  return `Semester ${fallbackIndex}`;
-}
-
-function getGradeOptionsForScanner(selectedGrade = "") {
-  return GRADE_SCALE.map((entry) => `<option value="${entry.grade}"${entry.grade === selectedGrade ? " selected" : ""}>${entry.grade}</option>`).join("");
-}
-
-function getScannerGradePattern() {
-  const grades = [...GRADE_SCALE.map((entry) => entry.grade)].sort((left, right) => right.length - left.length).map(escapeRegExp);
-  return new RegExp(`\\b(${grades.join("|")})\\b`, "i");
-}
-
-function parseScannerText(text) {
-  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim()).filter(Boolean);
-  const gradePattern = getScannerGradePattern();
-  const courseCodePattern = /\b[A-Z]{2,}[A-Z0-9-]*\d{2,}[A-Z0-9-]*\b/;
-  const rows = [];
-
-  lines.forEach((line) => {
-    if (/^(course|code|name|credits?|grade|unit|units|marks?|result|semester|student|gpa|cgpa)$/i.test(line.replace(/[:|]/g, "").trim())) {
-      return;
-    }
-
-    const gradeMatch = line.match(gradePattern);
-    const creditsMatch = line.match(/\b(\d+(?:\.\d+)?)\b/);
-    const codeMatch = line.match(courseCodePattern);
-    if (!gradeMatch || !creditsMatch) return;
-
-    const grade = gradeMatch[1].toUpperCase();
-    const gradeInfo = getGradeByLetter(grade);
-    const credits = parseFloat(creditsMatch[1]);
-    if (!gradeInfo || !Number.isFinite(credits) || credits <= 0) return;
-
-    let working = line;
-    if (codeMatch) working = working.replace(codeMatch[0], " ");
-    working = working.replace(creditsMatch[0], " ").replace(gradeMatch[0], " ");
-    const name = working
-      .replace(/\b(course|code|name|credits?|grade|unit|units|marks?|result|semester|student|gpa|cgpa)\b/gi, " ")
-      .replace(/[|:\-–—]/g, " ")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-    rows.push({
-      code: codeMatch ? codeMatch[0] : "",
-      name: name || codeMatch?.[0] || "Untitled course",
-      credits: credits.toFixed(2).replace(/\.00$/, ""),
-      grade,
-    });
-  });
-
-  return rows;
-}
-
-function formatScannerConfidence(value) {
-  if (!Number.isFinite(value)) return "—";
-  return `${Math.round(Math.max(0, Math.min(100, value)))}%`;
-}
-
-function calculateScannerSemesterGpa(rows) {
-  let points = 0;
-  let credits = 0;
-
-  rows.forEach((row) => {
-    const gradeInfo = getGradeByLetter(String(row.grade || "").toUpperCase());
-    const creditValue = parseFloat(row.credits);
-    if (!gradeInfo || !Number.isFinite(creditValue) || creditValue <= 0) return;
-    points += gradeInfo.points * creditValue;
-    credits += creditValue;
-  });
-
-  return {
-    semesterGpa: credits > 0 ? points / credits : null,
-    totalCredits: credits,
-  };
-}
-
-async function extractTextFromImageFile(file) {
-  if (!window.Tesseract) throw new Error("OCR engine unavailable");
-
-  const result = await Tesseract.recognize(file, "eng", {
-    logger: (message) => {
-      if (message?.status && scannerStatus) {
-        const progress = Number.isFinite(message.progress) ? `${Math.round(message.progress * 100)}%` : "";
-        scannerStatus.textContent = progress ? `${message.status} ${progress}` : message.status;
-      }
-    },
-  });
-
-  return {
-    text: result?.data?.text || "",
-    confidence: Number.isFinite(result?.data?.confidence) ? result.data.confidence : null,
-  };
-}
-
-async function extractTextFromPdfFile(file) {
-  if (!window.pdfjsLib) throw new Error("PDF reader unavailable");
-
-  if (window.pdfjsLib.GlobalWorkerOptions) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.worker.min.js";
-  }
-
-  const buffer = await file.arrayBuffer();
-  const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
-  const pageCount = Math.min(pdf.numPages, 3);
-  const pageTexts = [];
-  let confidenceSamples = [];
-
-  for (let pageIndex = 1; pageIndex <= pageCount; pageIndex += 1) {
-    const page = await pdf.getPage(pageIndex);
-    const viewport = page.getViewport({ scale: 2 });
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    await page.render({ canvasContext: context, viewport }).promise;
-    const ocrResult = await extractTextFromImageFile(canvas);
-    pageTexts.push(ocrResult.text);
-    if (Number.isFinite(ocrResult.confidence)) confidenceSamples.push(ocrResult.confidence);
-  }
-
-  return {
-    text: pageTexts.join("\n"),
-    confidence: confidenceSamples.length ? confidenceSamples.reduce((sum, sample) => sum + sample, 0) / confidenceSamples.length : null,
-  };
-}
-
-async function extractScannerText(file) {
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  if (isPdf) {
-    return extractTextFromPdfFile(file);
-  }
-  return extractTextFromImageFile(file);
-}
-
-function setScannerStatus(message, tone = "neutral") {
-  if (!scannerStatus) return;
-  scannerStatus.textContent = message;
-  scannerStatus.dataset.state = tone;
-}
-
-function setScannerProcessing(isProcessing) {
-  scannerProcessing = isProcessing;
-  if (scannerBrowseBtn) scannerBrowseBtn.disabled = isProcessing;
-  if (scannerScanBtn) scannerScanBtn.disabled = isProcessing || !scannerFile;
-  if (scannerEditBtn) scannerEditBtn.disabled = isProcessing || scannerExtractedRows.length === 0;
-  if (scannerConfirmBtn) scannerConfirmBtn.disabled = isProcessing || scannerExtractedRows.length === 0;
-}
-
-function getScannerReviewRows() {
-  if (!scannerReviewBody) return [];
-
-  return Array.from(scannerReviewBody.querySelectorAll("tr[data-row-index]")).map((row) => ({
-    code: row.querySelector(".scanner-code-input")?.value.trim() || "",
-    name: row.querySelector(".scanner-name-input")?.value.trim() || "",
-    credits: row.querySelector(".scanner-credits-input")?.value || "",
-    grade: row.querySelector(".scanner-grade-input")?.value || "",
-  }));
-}
-
-function updateScannerPreview() {
-  const rows = getScannerReviewRows();
-  const score = calculateScannerSemesterGpa(rows);
-  const baseConfidence = Number.isFinite(scannerExtractedConfidence) ? scannerExtractedConfidence : 0;
-  const qualityConfidence = rows.length > 0 ? Math.min(100, 55 + rows.filter((row) => row.grade && row.credits && row.name).length * 5) : 0;
-  const confidence = rows.length > 0 ? Math.round((baseConfidence + qualityConfidence) / 2) : null;
-
-  scannerExtractedRows = rows;
-  scannerSemesterGpa.textContent = score.semesterGpa !== null ? score.semesterGpa.toFixed(2) : "—";
-  scannerTotalCredits.textContent = score.totalCredits > 0 ? score.totalCredits.toFixed(score.totalCredits % 1 === 0 ? 0 : 1) : "—";
-  scannerCourseCount.textContent = `${rows.length}`;
-  scannerConfidenceValue.textContent = formatScannerConfidence(confidence);
-
-  if (scannerConfidence) {
-    scannerConfidence.hidden = confidence === null;
-    scannerConfidence.textContent = confidence === null
-      ? ""
-      : `Extraction Accuracy: ${formatScannerConfidence(confidence)} • ${rows.length} course${rows.length === 1 ? "" : "s"} detected`;
-  }
-
-  if (scannerConfirmBtn) scannerConfirmBtn.disabled = rows.length === 0 || scannerProcessing;
-  if (scannerEditBtn) scannerEditBtn.disabled = rows.length === 0 || scannerProcessing;
-  if (scannerScanBtn) scannerScanBtn.disabled = scannerProcessing || !scannerFile;
-}
-
-function applyScannerEditMode() {
-  if (!scannerReviewBody) return;
-  const controls = scannerReviewBody.querySelectorAll("input, select, button");
-  controls.forEach((control) => {
-    if (control.classList.contains("scanner-remove-row")) return;
-    control.disabled = !scannerEditMode;
-  });
-  if (scannerEditBtn) {
-    scannerEditBtn.textContent = scannerEditMode ? "Lock edits" : "Edit";
-  }
-}
-
-function renderScannerReview(rows) {
-  if (!scannerReviewBody) return;
-
-  if (!rows.length) {
-    scannerReviewBody.innerHTML = '<tr class="scanner-empty-row"><td colspan="4">No results detected yet.</td></tr>';
-    updateScannerPreview();
-    applyScannerEditMode();
-    return;
-  }
-
-  scannerReviewBody.innerHTML = rows.map((row, index) => `
-    <tr data-row-index="${index}">
-      <td><input class="scanner-code-input" type="text" value="${escapeHtml(row.code)}" placeholder="ACC102"></td>
-      <td><input class="scanner-name-input" type="text" value="${escapeHtml(row.name)}" placeholder="Accounting"></td>
-      <td><input class="scanner-credits-input" type="number" min="0" step="0.5" value="${escapeHtml(row.credits)}" placeholder="3"></td>
-      <td>
-        <div class="scanner-grade-cell">
-          <select class="scanner-grade-input">${getGradeOptionsForScanner(row.grade)}</select>
-          <button type="button" class="btn btn-remove scanner-remove-row" aria-label="Remove row">×</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
-
-  scannerReviewBody.querySelectorAll("input, select").forEach((input) => {
-    input.addEventListener("input", updateScannerPreview);
-    input.addEventListener("change", updateScannerPreview);
-  });
-
-  scannerReviewBody.querySelectorAll(".scanner-remove-row").forEach((button) => {
-    button.addEventListener("click", () => {
-      const row = button.closest("tr");
-      if (row) row.remove();
-      if (!scannerReviewBody.querySelector("tr[data-row-index]")) {
-        scannerReviewBody.innerHTML = '<tr class="scanner-empty-row"><td colspan="4">No results detected yet.</td></tr>';
-      }
-      updateScannerPreview();
-    });
-  });
-
-  applyScannerEditMode();
-  updateScannerPreview();
-}
-
-async function processScannerFile(file) {
-  if (!file || scannerProcessing) return;
-
-  scannerFile = file;
-  setScannerProcessing(true);
-  setScannerStatus(`Scanning ${file.name}...`, "neutral");
-  if (scannerConfidence) {
-    scannerConfidence.hidden = true;
-  }
-
-  try {
-    const extracted = await extractScannerText(file);
-    scannerExtractedText = extracted.text || "";
-    scannerExtractedConfidence = extracted.confidence;
-    scannerExtractedRows = parseScannerText(scannerExtractedText);
-
-    if (scannerExtractedRows.length === 0) {
-      renderScannerReview([]);
-      setScannerStatus("Unable to detect grades. Please upload a clearer image.", "warning");
-      setScannerProcessing(false);
-      return;
-    }
-
-    if (scannerSemesterLabel) {
-      scannerSemesterLabel.value = inferSemesterLabelFromFile(file.name, scannerExtractedText, (academicProfile?.semesters?.length || 0) + 1);
-    }
-
-    scannerEditMode = true;
-    renderScannerReview(scannerExtractedRows);
-    setScannerStatus(`Detected ${scannerExtractedRows.length} course${scannerExtractedRows.length === 1 ? "" : "s"}. Review before importing.`, "success");
-  } catch (error) {
-    console.warn("Scanner could not process the uploaded file", error);
-    scannerExtractedRows = [];
-    scannerExtractedText = "";
-    scannerExtractedConfidence = null;
-    renderScannerReview([]);
-    setScannerStatus("Unable to detect grades. Please upload a clearer image.", "warning");
-  } finally {
-    setScannerProcessing(false);
-  }
-}
-
-function confirmScannerImport() {
-  if (!hasScannerPage) return;
-
   const rows = getScannerReviewRows().filter((row) => row.name || row.code || row.grade);
   const result = calculateScannerSemesterGpa(rows);
 
@@ -554,10 +186,10 @@ function confirmScannerImport() {
   renderScannerReview(rows);
   syncSemesterTrend();
   persistAcademicProfile({ message: "Progress saved" });
-  setScannerStatus(`Imported ${rows.length} course${rows.length === 1 ? "" : "s"} into ${semesterLabel}.`, "success");
+  clearScannerState(`Imported ${rows.length} course${rows.length === 1 ? "" : "s"} into ${semesterLabel}.`, "success");
 }
 
-function clearScannerState() {
+function clearScannerState(message = "Upload a file to extract courses and grades.", tone = "neutral") {
   scannerFile = null;
   scannerExtractedRows = [];
   scannerExtractedText = "";
@@ -566,7 +198,7 @@ function clearScannerState() {
   if (scannerFileInput) scannerFileInput.value = "";
   if (scannerSemesterLabel) scannerSemesterLabel.value = "";
   renderScannerReview([]);
-  setScannerStatus("Upload a file to extract courses and grades.", "neutral");
+  setScannerStatus(message, tone);
   if (scannerConfidence) {
     scannerConfidence.hidden = true;
   }
@@ -2172,60 +1804,9 @@ if (!profileLoaded) {
   initializeAcademicProfile();
 }
 
-if (hasScannerPage) {
-  clearScannerState();
-}
-
 if (hasCalculatorPage) {
   renderScaleTable();
   restoreAcademicUiFromProfile();
-}
-
-if (hasScannerPage) {
-  const triggerScannerPick = () => {
-    if (!scannerProcessing) {
-      scannerFileInput.click();
-    }
-  };
-
-  scannerBrowseBtn.addEventListener("click", triggerScannerPick);
-  scannerDropzone.addEventListener("click", (event) => {
-    const target = event.target;
-    if (target instanceof HTMLElement && (target.tagName === "BUTTON" || target.closest("button"))) return;
-    triggerScannerPick();
-  });
-  scannerDropzone.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      triggerScannerPick();
-    }
-  });
-  scannerDropzone.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    scannerDropzone.classList.add("dragover");
-  });
-  scannerDropzone.addEventListener("dragleave", () => {
-    scannerDropzone.classList.remove("dragover");
-  });
-  scannerDropzone.addEventListener("drop", async (event) => {
-    event.preventDefault();
-    scannerDropzone.classList.remove("dragover");
-    const [file] = event.dataTransfer?.files || [];
-    if (file) {
-      await handleScannerFile(file);
-    }
-  });
-  scannerFileInput.addEventListener("change", async () => {
-    const [file] = scannerFileInput.files || [];
-    if (file) await handleScannerFile(file);
-  });
-  scannerScanBtn.addEventListener("click", () => {
-    if (scannerFile) {
-      processScannerFile(scannerFile);
-    }
-  });
-  scannerEditBtn.addEventListener("click", toggleScannerEditMode);
-  scannerConfirmBtn.addEventListener("click", confirmScannerImport);
 }
 
 if (hasTrendPage) {

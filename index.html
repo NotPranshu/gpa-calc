@@ -112,91 +112,6 @@
       </section>
     </div>
 
-    <section class="scanner-section" id="gpaScannerSection" aria-labelledby="scannerHeading">
-      <div class="section-header">
-        <div>
-          <p class="trend-eyebrow">GPA scanner</p>
-          <h2 id="scannerHeading">Import results from an image or PDF</h2>
-        </div>
-        <p class="scanner-section-note">Upload a screenshot, image, or transcript PDF and review the detected courses before saving.</p>
-      </div>
-
-      <div class="scanner-dashboard">
-        <div class="planner-card scanner-upload-card">
-          <div class="scanner-dropzone" id="scannerDropzone" role="button" tabindex="0" aria-label="Upload results image or PDF">
-            <input type="file" id="scannerFileInput" accept="image/png,image/jpeg,application/pdf" hidden>
-            <div class="scanner-dropzone-copy">
-              <span class="scanner-icon">⬆</span>
-              <strong>Drag & Drop Image</strong>
-              <span>or browse files to scan a results screenshot or PDF.</span>
-            </div>
-            <div class="scanner-dropzone-actions">
-              <button type="button" class="btn btn-primary" id="scannerBrowseBtn">Browse Files</button>
-              <button type="button" class="btn btn-secondary" id="scannerScanBtn" disabled>Scan Results</button>
-            </div>
-          </div>
-          <div class="scanner-status" id="scannerStatus">Upload a file to extract courses and grades.</div>
-          <div class="scanner-confidence" id="scannerConfidence" hidden></div>
-        </div>
-
-        <div class="planner-card scanner-review-card">
-          <div class="scanner-review-head">
-            <div>
-              <h3>Review Extracted Data</h3>
-              <p class="scanner-card-note">Confirm or edit detected rows before importing them into your academic history.</p>
-            </div>
-            <label class="semester-field scanner-semester-field">
-              <span>Semester label</span>
-              <input type="text" id="scannerSemesterLabel" placeholder="Semester 3">
-            </label>
-          </div>
-
-          <div class="scanner-preview-grid">
-            <article class="scanner-preview-stat">
-              <span>Semester GPA</span>
-              <strong id="scannerSemesterGpa">—</strong>
-            </article>
-            <article class="scanner-preview-stat">
-              <span>Total credits</span>
-              <strong id="scannerTotalCredits">—</strong>
-            </article>
-            <article class="scanner-preview-stat">
-              <span>Courses detected</span>
-              <strong id="scannerCourseCount">0</strong>
-            </article>
-            <article class="scanner-preview-stat">
-              <span>Confidence</span>
-              <strong id="scannerConfidenceValue">—</strong>
-            </article>
-          </div>
-
-          <div class="scanner-table-wrap">
-            <table class="scanner-table">
-              <thead>
-                <tr>
-                  <th>Course code</th>
-                  <th>Course name</th>
-                  <th>Credits</th>
-                  <th>Grade</th>
-                </tr>
-              </thead>
-              <tbody id="scannerReviewBody">
-                <tr class="scanner-empty-row">
-                  <td colspan="4">No results detected yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="scanner-actions">
-            <button type="button" class="btn btn-secondary" id="scannerResetBtn">Reset</button>
-            <button type="button" class="btn btn-secondary" id="scannerEditBtn" disabled>Edit</button>
-            <button type="button" class="btn btn-primary" id="scannerConfirmBtn" disabled>Confirm Import</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <div class="main-content">
       <section class="courses-section">
         <div class="section-header">
@@ -326,8 +241,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
