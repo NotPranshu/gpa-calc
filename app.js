@@ -171,6 +171,8 @@ function formatRelativeTime(dateString) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+<<<<<<< HEAD
+=======
 function createSemesterId() {
   return `semester-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
@@ -590,6 +592,7 @@ function toggleScannerEditMode() {
   applyScannerEditMode();
 }
 
+>>>>>>> parent of 40d406b (removed tesseract.js/OCR)
 function serializePlannerCourseRow(row) {
   return {
     name: row.querySelector(".planner-course-name")?.value.trim() || "",
