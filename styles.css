@@ -1152,11 +1152,6 @@ select:focus-visible {
   .courses-section,
   .scale-section,
   .storage-panel,
-  .scanner-dropzone,
-  .scanner-status,
-  .scanner-confidence,
-  .scanner-preview-stat,
-  .scanner-table-wrap,
   .trend-chart-wrap,
   .trend-summary-item,
   .semester-history-item,
@@ -1194,11 +1189,7 @@ select:focus-visible {
   .planner-empty-state,
   .semester-empty-state,
   .storage-stat,
-  .storage-panel,
-  .scanner-table-wrap,
-  .scanner-status,
-  .scanner-confidence,
-  .scanner-preview-stat {
+  .storage-panel {
     border-color: var(--border);
   }
 }
@@ -1319,7 +1310,6 @@ select:focus-visible {
   .section-header,
   .planner-course-header,
   .planner-progress-head,
-  .scanner-review-head,
   .trend-card-head,
   .trend-manager-head {
     flex-direction: column;
